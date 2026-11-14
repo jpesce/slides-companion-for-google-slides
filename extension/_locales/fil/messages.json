@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "Nakalutang sa ibabaw ng slideshow" },
   "presenterViewFloatingHint": { "message": "palagi, kahit may pangalawang screen" },
   "presenterViewWindow": { "message": "Sa sarili nitong window" },
+  "presenterViewWindowHint": { "message": "gaya ng karaniwang ginagawa ng Google Slides, at bukas pa rin ang lumulutang na window ng tawag sa Meet" },
   "presenterViewFloats": { "message": "Kapag nakalutang, ipinapakita nito ang" },
   "floatsAll": { "message": "Buong view ng presenter" },
   "floatsAllHint": { "message": "ang timer, ang mga slide, at ang notes mo" },

@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "स्लाइड शो के ऊपर फ़्लोटिंग" },
   "presenterViewFloatingHint": { "message": "हमेशा, दूसरी स्क्रीन होने पर भी" },
   "presenterViewWindow": { "message": "अपनी अलग विंडो में" },
+  "presenterViewWindowHint": { "message": "जैसा Slides आम तौर पर करता है, और Meet की तैरती कॉल विंडो भी खुली रहती है" },
   "presenterViewFloats": { "message": "फ़्लोटिंग होने पर यह दिखाए" },
   "floatsAll": { "message": "पूरा प्रज़ेंटर व्यू" },
   "floatsAllHint": { "message": "टाइमर, स्लाइड और आपके नोट" },

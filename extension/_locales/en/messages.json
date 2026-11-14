@@ -413,6 +413,10 @@
     "message": "In a window of its own",
     "description": "A choice."
   },
+  "presenterViewWindowHint": {
+    "message": "as Slides does, and Meet’s floating call window stays open too",
+    "description": "The note after “In a window of its own”: unlike presenter view floating, which takes turns with Meet’s floating call window, Slides’ own window leaves it open."
+  },
   "presenterViewFloats": {
     "message": "When it floats, it shows",
     "description": "A group of choices: what the floating window over the slideshow shows."

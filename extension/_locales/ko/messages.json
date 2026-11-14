@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "슬라이드쇼 위에 플로팅" },
   "presenterViewFloatingHint": { "message": "두 번째 화면이 있어도 항상" },
   "presenterViewWindow": { "message": "별도 창" },
+  "presenterViewWindowHint": { "message": "Google Slides 기본 방식이며, Meet의 플로팅 통화 창도 계속 열려 있습니다" },
   "presenterViewFloats": { "message": "플로팅할 때 표시할 내용" },
   "floatsAll": { "message": "발표자 보기 전체" },
   "floatsAllHint": { "message": "타이머, 슬라이드, 메모" },

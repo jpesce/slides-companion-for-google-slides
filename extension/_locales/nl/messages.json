@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Zwevend boven de diavoorstelling" },
   "presenterViewFloatingHint": { "message": "altijd, ook met een tweede scherm" },
   "presenterViewWindow": { "message": "In een eigen venster" },
+  "presenterViewWindowHint": { "message": "zoals Presentaties het standaard doet, en het zwevende gespreksvenster van Meet blijft ook open" },
   "presenterViewFloats": { "message": "Zwevend toont hij" },
   "floatsAll": { "message": "De hele presentatorweergave" },
   "floatsAllHint": { "message": "de timer, de dia’s en je notities" },

@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Flotante sobre la presentación" },
   "presenterViewFloatingHint": { "message": "siempre, incluso con una segunda pantalla" },
   "presenterViewWindow": { "message": "En su propia ventana" },
+  "presenterViewWindowHint": { "message": "como lo hace Presentaciones normalmente, y la ventana flotante de la llamada de Meet también sigue abierta" },
   "presenterViewFloats": { "message": "Cuando flota, muestra" },
   "floatsAll": { "message": "Toda la vista de presentador" },
   "floatsAllHint": { "message": "el temporizador, las diapositivas y tus notas" },

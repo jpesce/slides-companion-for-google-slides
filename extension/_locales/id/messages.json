@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "Mengambang di atas slideshow" },
   "presenterViewFloatingHint": { "message": "selalu, bahkan dengan layar kedua" },
   "presenterViewWindow": { "message": "Di jendelanya sendiri" },
+  "presenterViewWindowHint": { "message": "seperti yang biasa dilakukan Google Slide, dan jendela panggilan mengambang Meet juga tetap terbuka" },
   "presenterViewFloats": { "message": "Saat mengambang, yang ditampilkan" },
   "floatsAll": { "message": "Seluruh Tampilan Presenter" },
   "floatsAllHint": { "message": "pengatur waktu, slide, dan catatan Anda" },

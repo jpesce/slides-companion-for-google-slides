@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Lebegve a diavetítés fölött" },
   "presenterViewFloatingHint": { "message": "mindig, második képernyővel is" },
   "presenterViewWindow": { "message": "Saját ablakban" },
+  "presenterViewWindowHint": { "message": "ahogy a Diák alapesetben is működik, és a Meet lebegő hívásablaka is nyitva marad" },
   "presenterViewFloats": { "message": "Lebegve ezt mutatja" },
   "floatsAll": { "message": "A teljes előadói nézetet" },
   "floatsAllHint": { "message": "az időzítőt, a diákat és a jegyzeteit" },

@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Flottant au-dessus du diaporama" },
   "presenterViewFloatingHint": { "message": "toujours, même avec un second écran" },
   "presenterViewWindow": { "message": "Dans sa propre fenêtre" },
+  "presenterViewWindowHint": { "message": "comme Slides le fait d’habitude, et la fenêtre flottante de l’appel Meet reste ouverte elle aussi" },
   "presenterViewFloats": { "message": "Quand il flotte, il affiche" },
   "floatsAll": { "message": "Tout le mode Présentateur" },
   "floatsAllHint": { "message": "le compteur, les diapositives et vos notes" },

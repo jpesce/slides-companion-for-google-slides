@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "スライドショーの上にフローティング" },
   "presenterViewFloatingHint": { "message": "2 台目の画面があっても常に" },
   "presenterViewWindow": { "message": "専用ウィンドウ" },
+  "presenterViewWindowHint": { "message": "Google スライド本来の動作。Meet のフローティング通話ウィンドウも開いたままになります" },
   "presenterViewFloats": { "message": "フローティング時の表示" },
   "floatsAll": { "message": "プレゼンター表示全体" },
   "floatsAllHint": { "message": "タイマー、スライド、メモ" },

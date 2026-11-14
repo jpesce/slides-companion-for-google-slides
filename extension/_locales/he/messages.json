@@ -117,6 +117,7 @@
   "presenterViewFloating": { "message": "צף מעל המצגת" },
   "presenterViewFloatingHint": { "message": "תמיד, גם כשיש מסך שני" },
   "presenterViewWindow": { "message": "בחלון משלו" },
+  "presenterViewWindowHint": { "message": "כמו בברירת המחדל של Slides, וגם חלון השיחה הצף של Meet נשאר פתוח" },
   "presenterViewFloats": { "message": "כשהוא צף, הוא מציג" },
   "floatsAll": { "message": "את כל מצב 'מציג'" },
   "floatsAllHint": { "message": "הטיימר, השקפים וההערות שלך" },

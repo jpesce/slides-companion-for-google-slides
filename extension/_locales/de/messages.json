@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Schwebend über der Diashow" },
   "presenterViewFloatingHint": { "message": "immer, auch mit einem zweiten Bildschirm" },
   "presenterViewWindow": { "message": "In einem eigenen Fenster" },
+  "presenterViewWindowHint": { "message": "wie bei Google Präsentationen üblich; das schwebende Anruffenster von Meet bleibt dabei geöffnet" },
   "presenterViewFloats": { "message": "Schwebend zeigt sie" },
   "floatsAll": { "message": "Die ganze Vortragenden-Ansicht" },
   "floatsAllHint": { "message": "Timer, Folien und Ihre Notizen" },

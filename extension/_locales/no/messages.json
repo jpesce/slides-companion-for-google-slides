@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Svevende over fremvisningen" },
   "presenterViewFloatingHint": { "message": "alltid, også med en skjerm til" },
   "presenterViewWindow": { "message": "I sitt eget vindu" },
+  "presenterViewWindowHint": { "message": "slik Presentasjoner vanligvis gjør, og det svevende samtalevinduet i Meet forblir også åpent" },
   "presenterViewFloats": { "message": "Når den svever, viser den" },
   "floatsAll": { "message": "Hele visningen for foredragsholder" },
   "floatsAllHint": { "message": "tidtakeren, lysbildene og notatene dine" },

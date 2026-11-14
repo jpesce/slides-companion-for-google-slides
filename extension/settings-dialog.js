@@ -118,7 +118,7 @@
           ${legend('presenterViewOpens')}
           ${radio('presenterViewOpens', 'auto', 'presenterViewAuto', 'presenterViewAutoHint')}
           ${radio('presenterViewOpens', 'floating', 'presenterViewFloating', 'presenterViewFloatingHint')}
-          ${radio('presenterViewOpens', 'window', 'presenterViewWindow', 'asSlidesDoes')}
+          ${radio('presenterViewOpens', 'window', 'presenterViewWindow', 'presenterViewWindowHint')}
         </fieldset>
         <fieldset class="slides-companion-dialog-group">
           ${legend('presenterViewFloats')}

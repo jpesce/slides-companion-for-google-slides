@@ -117,6 +117,7 @@
   "presenterViewFloating": { "message": "Αιωρούμενη πάνω από την προβολή" },
   "presenterViewFloatingHint": { "message": "πάντα, ακόμη και με δεύτερη οθόνη" },
   "presenterViewWindow": { "message": "Σε δικό της παράθυρο" },
+  "presenterViewWindowHint": { "message": "όπως κάνουν από μόνες τους οι Παρουσιάσεις, και το αιωρούμενο παράθυρο κλήσης του Meet μένει κι αυτό ανοιχτό" },
   "presenterViewFloats": { "message": "Όταν αιωρείται, δείχνει" },
   "floatsAll": { "message": "Όλη την προβολή παρουσιαστή" },
   "floatsAllHint": { "message": "το χρονόμετρο, τις διαφάνειες και τις σημειώσεις σας" },

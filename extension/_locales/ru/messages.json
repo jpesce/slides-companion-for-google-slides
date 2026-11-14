@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Поверх слайд-шоу" },
   "presenterViewFloatingHint": { "message": "всегда, даже со вторым экраном" },
   "presenterViewWindow": { "message": "В отдельном окне" },
+  "presenterViewWindowHint": { "message": "как обычно в Google Презентациях, и плавающее окно звонка Meet тоже остаётся открытым" },
   "presenterViewFloats": { "message": "Поверх слайдов показывается" },
   "floatsAll": { "message": "Весь режим докладчика" },
   "floatsAllHint": { "message": "таймер, слайды и ваши заметки" },

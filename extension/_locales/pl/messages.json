@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Pływający nad pokazem slajdów" },
   "presenterViewFloatingHint": { "message": "zawsze, nawet z drugim ekranem" },
   "presenterViewWindow": { "message": "We własnym oknie" },
+  "presenterViewWindowHint": { "message": "jak domyślnie w Prezentacjach, a pływające okno rozmowy w Meet też zostaje otwarte" },
   "presenterViewFloats": { "message": "Pływający widok pokazuje" },
   "floatsAll": { "message": "Cały widok prowadzącego" },
   "floatsAllHint": { "message": "zegar, slajdy i Twoje notatki" },

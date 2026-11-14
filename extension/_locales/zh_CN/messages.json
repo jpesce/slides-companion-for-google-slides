@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "浮在幻灯片演示上方" },
   "presenterViewFloatingHint": { "message": "始终如此，即使有第二个屏幕" },
   "presenterViewWindow": { "message": "在单独的窗口中" },
+  "presenterViewWindowHint": { "message": "与 Google 幻灯片的默认方式相同，Meet 的浮动通话窗口也会保持打开" },
   "presenterViewFloats": { "message": "浮动时显示" },
   "floatsAll": { "message": "整个演示者视图" },
   "floatsAllHint": { "message": "定时器、幻灯片和您的备注" },

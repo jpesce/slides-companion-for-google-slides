@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Kelluvana diasarjan päällä" },
   "presenterViewFloatingHint": { "message": "aina, myös toisen näytön kanssa" },
   "presenterViewWindow": { "message": "Omaan ikkunaansa" },
+  "presenterViewWindowHint": { "message": "kuten Slidesissa tavallisesti, ja Meetin kelluva puheluikkuna pysyy myös auki" },
   "presenterViewFloats": { "message": "Kelluessaan se näyttää" },
   "floatsAll": { "message": "Koko Esittäjä-näkymän" },
   "floatsAllHint": { "message": "ajastimen, diat ja muistiinpanosi" },

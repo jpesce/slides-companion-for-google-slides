@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Svævende over diasshowet" },
   "presenterViewFloatingHint": { "message": "altid, også med en ekstra skærm" },
   "presenterViewWindow": { "message": "I sit eget vindue" },
+  "presenterViewWindowHint": { "message": "som Slides normalt gør, og Meets svævende opkaldsvindue forbliver også åbent" },
   "presenterViewFloats": { "message": "Når den svæver, viser den" },
   "floatsAll": { "message": "Hele præsentationstilstand" },
   "floatsAllHint": { "message": "timeren, diasene og dine noter" },
