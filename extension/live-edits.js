@@ -278,7 +278,7 @@
   }
 
   // A calm moment: not mid-transition or animation, not zoomed in or with an image spotlit, no menu
-  // open, no video on the slide, no button held (drawing with the pen, say).
+  // open, no video on the slide (your camera aside), no button held (drawing with the pen, say).
   function calm(doc) {
     if (
       doc.documentElement.classList.contains('slides-companion-zoomed') ||
@@ -293,7 +293,18 @@
           Number.isFinite(animation.effect?.getComputedTiming().endTime),
       );
     const shows = (element) => element.getBoundingClientRect().width > 0;
-    return !moving && ![...doc.querySelectorAll('[role="menu"], iframe, video')].some(shows);
+    // Speaker spotlight's camera is a video that never ends. It plays a MediaStream, not a file,
+    // and the copy's own spotlight shows the same camera, so it doesn't hold the copy back. (The
+    // stream comes from the player's own frame, so instanceof can't tell.)
+    const camera = (element) =>
+      element.tagName === 'VIDEO' &&
+      Object.prototype.toString.call(element.srcObject) === '[object MediaStream]';
+    return (
+      !moving &&
+      ![...doc.querySelectorAll('[role="menu"], iframe, video')].some(
+        (element) => shows(element) && !camera(element),
+      )
+    );
   }
 
   // Animations show a slide's objects step by step; the copy is at the same step when the same
