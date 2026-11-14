@@ -9,3 +9,11 @@
 **Done when:**
 - [ ] Which browsers and screen layouts open presenter view as a tab is written here.
 - [ ] With a second screen, S opens presenter view in a window of its own on the other screen, whichever screen the slideshow is on, and a test covers it if the test Chromium can show it.
+
+## What's known, 14 November 2026
+
+- **Not the extension.** With a second screen and the default setting, S isn't held back, and Slides' own `window.open` goes through unchanged (presenter-view-main.js only takes over when a floating window is ready).
+- **What Slides asks for:** `window.open('about:blank', 'punch_speaker_notes__…', '…,width=730,height=580,left=…,top=…')`, at the top-left of the screen the editor's window is on (`left=0,top=30` on the main screen, `left=462,top=1473` on the laptop's).
+- **Chromium** (Playwright's, headed, both screens): presenter view opens in its own window, with the editor's window on either screen.
+- **Dia, without Meet:** presenter view opens in its own window from the laptop screen too. A test page calling `window.open` with Slides' features also got its own window every time: aimed at either screen, from either screen, with no position, and with another tab's picture-in-picture window open. With no recent click or key, Dia blocks the popup rather than opening a tab.
+- **So the tab only came during the Meet check:** the editor's tab was being shared to the call through Slides' **Just present this tab** (Region Capture), with Meet's floating call window open. That's where to repeat it, the next time there's a call to present in.
