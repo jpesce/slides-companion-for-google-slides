@@ -9,6 +9,18 @@
 - When presenter view's floating window closes without the presenter closing it, offer it back (S opens it again today).
 
 **Done when:**
-- [ ] What happens in a real Meet call is written here, with Meet's automatic picture-in-picture on and off.
+- [ ] What happens in a real Meet call is written here, with Meet's automatic picture-in-picture on and off. Done with it on (below); off isn't checked yet.
 - [ ] Presenters can find out, before a talk, that the two take turns, in plain words.
 - [ ] If presenter view can come back by itself or with one click, it does, and a test covers it.
+
+## Checked in a real call, 14 November 2026
+
+Dia, with Meet's automatic picture-in-picture on, as Meet ships it. The deck was presented from the editor's **Just present this tab**, with a second participant in another profile. A second screen was connected, so presenter view was set to "Floating over your slideshow" for the test, then set back.
+
+- Going from the Meet tab to the deck makes Meet open its floating call window by itself.
+- Pressing S then opens presenter view floating, and Meet's window closes.
+- With presenter view floating, going to the Meet tab and back leaves it alone: Meet doesn't open its window while another one is up.
+- Meet's **More options › Open picture-in-picture** replaces presenter view, and presenter view doesn't come back by itself.
+- With a second screen and the default setting, presenter view opens in its own window and Meet's floating window stays: no clash.
+
+So the two only take turns when the presenter asks for one: presenter view takes over Meet's automatic window, and Meet's menu takes it back. Meet never takes the window from presenter view by itself.

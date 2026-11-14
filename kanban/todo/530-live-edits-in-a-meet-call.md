@@ -8,5 +8,15 @@
 
 **Done when:**
 - [ ] What the call sees during a swap is recorded here, camera on and off: no flicker, a blink, or a freeze.
-- [ ] Anything other than what the room sees is fixed, or, if it can't be, live edits waits for a slide change while presenting through Meet, and a test covers it.
-- [ ] How long a copy takes to load, and what it costs the computer during a call, is noted here.
+- [x] Anything other than what the room sees is fixed, or, if it can't be, live edits waits for a slide change while presenting through Meet, and a test covers it. Nothing differed, so there was nothing to fix.
+- [x] How long a copy takes to load, and what it costs the computer during a call, is noted here.
+
+## Checked in a real call, 14 November 2026
+
+Dia, live edits on "now". The Work profile presented a scratch deck from the editor's **Just present this tab**, and the Personal profile watched from the call. The presenter's Meet camera was on. Edits were made through the Slides API, and the participant's stage was screen-recorded at 60 fps and measured frame by frame.
+
+- **Edit to the slide on screen** (twice): the call shows the same half-second dissolve as the room (12.10–12.55 s in one recording, 8.68–9.15 s in the other). The middle frame shows the old and new text crossfading. There was no blink and no frozen frame.
+- **Edit to another slide:** nothing changes in the call. The largest frame-to-frame difference was 0.03, against 0.5 at the peak of a dissolve.
+- **Delay:** the call showed the edit before the API call had even returned, so within about 6 s of the write.
+- **Cost:** Dia's processes go from about 1 core (the call and the tab share) to about 2.7 cores for about 2 s, then settle. That's on a 10-core Mac already busy, with a load average of 33. The presenter's camera, as the participant received it, kept about 27 fps through the edit, with no gap between frames over 120 ms, so the outgoing video didn't stutter.
+- **Not covered:** your camera on the slide (`SK_sharedCameraStreamCoordinator`). This deck's menus (Slideshow options, Slides' Meet menu) offered no way to turn it on. What's left is finding where Slides offers it and repeating the on-screen edit with it on.
