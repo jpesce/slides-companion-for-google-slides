@@ -351,6 +351,45 @@ test('it waits for a calm moment: an image spotlit keeps the slide as it is', as
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
 });
 
+// Slides' speaker spotlight shows your camera on the slide, in a video that plays a MediaStream and
+// never ends. Here a canvas's stream stands in for the camera, and a video of a file for a video on
+// the slide.
+test('your camera on the slide doesn’t keep the slide as it is, a video does', async ({
+  context,
+}) => {
+  const page = await startEditableSlideshow(context);
+  const add = (kind) =>
+    page.evaluate(
+      ([selector, kind]) => {
+        const doc = document.querySelector(selector).contentDocument;
+        const video = doc.createElement('video');
+        video.className = `test-${kind}`;
+        video.muted = true;
+        if (kind === 'camera') {
+          const canvas = doc.createElement('canvas');
+          canvas.getContext('2d').fillRect(0, 0, 10, 10);
+          video.srcObject = canvas.captureStream();
+          video.play();
+        } else video.src = 'data:video/mp4;base64,';
+        video.style.cssText = 'position: fixed; top: 0; right: 0; width: 120px; height: 120px';
+        doc.body.append(video);
+      },
+      [PLAYER, kind],
+    );
+  await add('camera');
+  await add('file');
+  await edit(page, SLIDE_3, 'Lisbon');
+  await stays(() => slidesOwn(page).getAttribute('data-slides-companion-player'), null, 6000);
+
+  await page.evaluate(
+    (selector) =>
+      document.querySelector(selector).contentDocument.querySelector('.test-file').remove(),
+    PLAYER,
+  );
+  await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
+  await replaced(page);
+});
+
 test('what the pen drew, and the pen itself, carry over', async ({ context }) => {
   const page = await startEditableSlideshow(context);
   await page.keyboard.press('Shift+L');
