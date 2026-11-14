@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Flutuante sobre a apresentação" },
   "presenterViewFloatingHint": { "message": "sempre, mesmo com um segundo ecrã" },
   "presenterViewWindow": { "message": "Numa janela própria" },
+  "presenterViewWindowHint": { "message": "como o Slides faz normalmente, e a janela flutuante da chamada do Meet também fica aberta" },
   "presenterViewFloats": { "message": "Quando flutua, mostra" },
   "floatsAll": { "message": "Toda a vista de apresentador" },
   "floatsAllHint": { "message": "o temporizador, os slides e as suas notas" },

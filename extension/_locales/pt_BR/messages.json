@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Flutuante sobre a apresentação" },
   "presenterViewFloatingHint": { "message": "sempre, mesmo com uma segunda tela" },
   "presenterViewWindow": { "message": "Numa janela própria" },
+  "presenterViewWindowHint": { "message": "como o Google Slides faz normalmente, e a janela flutuante da chamada do Meet também continua aberta" },
   "presenterViewFloats": { "message": "Quando flutua, mostra" },
   "floatsAll": { "message": "Toda a visualização de apresentador" },
   "floatsAllHint": { "message": "o contador, os slides e suas anotações" },

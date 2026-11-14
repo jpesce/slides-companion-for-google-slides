@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "ลอยเหนือภาพสไลด์" },
   "presenterViewFloatingHint": { "message": "เสมอ แม้จะมีหน้าจอที่สอง" },
   "presenterViewWindow": { "message": "ในหน้าต่างของตัวเอง" },
+  "presenterViewWindowHint": { "message": "ตามปกติของ Google สไลด์ และหน้าต่างการโทรแบบลอยของ Meet ก็ยังเปิดอยู่ด้วย" },
   "presenterViewFloats": { "message": "เมื่อลอยอยู่ จะแสดง" },
   "floatsAll": { "message": "มุมมองของผู้นำเสนอทั้งหมด" },
   "floatsAllHint": { "message": "ตัวจับเวลา สไลด์ และบันทึกของคุณ" },

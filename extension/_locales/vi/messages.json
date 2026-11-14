@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "Nổi trên bản trình chiếu" },
   "presenterViewFloatingHint": { "message": "luôn luôn, kể cả khi có màn hình thứ hai" },
   "presenterViewWindow": { "message": "Trong cửa sổ riêng" },
+  "presenterViewWindowHint": { "message": "như Google Trang trình bày vẫn làm, và cửa sổ cuộc gọi nổi của Meet cũng vẫn mở" },
   "presenterViewFloats": { "message": "Khi nổi, sẽ hiển thị" },
   "floatsAll": { "message": "Toàn bộ chế độ xem của người trình bày" },
   "floatsAllHint": { "message": "bộ tính giờ, các trang trình bày và ghi chú của bạn" },

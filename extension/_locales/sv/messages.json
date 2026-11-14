@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Svävande över bildspelet" },
   "presenterViewFloatingHint": { "message": "alltid, även med en andra skärm" },
   "presenterViewWindow": { "message": "I ett eget fönster" },
+  "presenterViewWindowHint": { "message": "som Presentationer normalt gör, och Meets svävande samtalsfönster förblir också öppet" },
   "presenterViewFloats": { "message": "När den svävar visar den" },
   "floatsAll": { "message": "Hela presentatörsvyn" },
   "floatsAllHint": { "message": "timern, bilderna och dina anteckningar" },

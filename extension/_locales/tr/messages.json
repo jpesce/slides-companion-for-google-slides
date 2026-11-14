@@ -117,6 +117,7 @@
   "presenterViewFloating": { "message": "Slayt gösterisinin üstünde yüzer" },
   "presenterViewFloatingHint": { "message": "her zaman, ikinci ekran olsa da" },
   "presenterViewWindow": { "message": "Kendi penceresinde" },
+  "presenterViewWindowHint": { "message": "Slaytlar’ın normalde yaptığı gibi; Meet’in yüzen görüşme penceresi de açık kalır" },
   "presenterViewFloats": { "message": "Yüzerken gösterdiği" },
   "floatsAll": { "message": "Sunucu görünümünün tamamı" },
   "floatsAllHint": { "message": "zamanlayıcı, slaytlar ve notlarınız" },

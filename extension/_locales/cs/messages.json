@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Plovoucí nad promítáním" },
   "presenterViewFloatingHint": { "message": "vždy, i s druhou obrazovkou" },
   "presenterViewWindow": { "message": "Ve vlastním okně" },
+  "presenterViewWindowHint": { "message": "stejně jako samotné Prezentace, a plovoucí okno hovoru v Meetu zůstane otevřené" },
   "presenterViewFloats": { "message": "Když se vznáší, ukazuje" },
   "floatsAll": { "message": "Celé zobrazení pro prezentujícího" },
   "floatsAllHint": { "message": "časovač, snímky a vaše poznámky" },

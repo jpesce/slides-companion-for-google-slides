@@ -117,6 +117,7 @@
   "presenterViewFloating": { "message": "عائمًا فوق عرض الشرائح" },
   "presenterViewFloatingHint": { "message": "دائمًا، حتى مع وجود شاشة ثانية" },
   "presenterViewWindow": { "message": "في نافذة خاصة به" },
+  "presenterViewWindowHint": { "message": "كما يفعل تطبيق \"العروض التقديمية\" عادةً، وتبقى نافذة مكالمة Meet العائمة مفتوحة أيضًا" },
   "presenterViewFloats": { "message": "عندما يطفو، يعرض" },
   "floatsAll": { "message": "عرض المقدِّم بالكامل" },
   "floatsAllHint": { "message": "الموقّت والشرائح وملاحظاتك" },

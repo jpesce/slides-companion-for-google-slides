@@ -111,6 +111,7 @@
   "presenterViewFloating": { "message": "Terapung di atas tayangan slaid" },
   "presenterViewFloatingHint": { "message": "sentiasa, walaupun dengan skrin kedua" },
   "presenterViewWindow": { "message": "Dalam tetingkapnya sendiri" },
+  "presenterViewWindowHint": { "message": "seperti kebiasaan Google Slides, dan tetingkap panggilan terapung Meet juga kekal terbuka" },
   "presenterViewFloats": { "message": "Apabila terapung, ia menunjukkan" },
   "floatsAll": { "message": "Seluruh paparan penyampai" },
   "floatsAllHint": { "message": "pemasa, slaid dan nota anda" },

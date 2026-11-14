@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Plutitoare peste slideshow" },
   "presenterViewFloatingHint": { "message": "mereu, chiar și cu un al doilea ecran" },
   "presenterViewWindow": { "message": "Într-o fereastră proprie" },
+  "presenterViewWindowHint": { "message": "cum face în mod obișnuit aplicația Prezentări, iar fereastra plutitoare a apelului Meet rămâne și ea deschisă" },
   "presenterViewFloats": { "message": "Când plutește, arată" },
   "floatsAll": { "message": "Toată afișarea pentru prezentator" },
   "floatsAllHint": { "message": "cronometrul, slide-urile și notițele tale" },

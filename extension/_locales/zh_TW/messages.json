@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "浮在投影播放上方" },
   "presenterViewFloatingHint": { "message": "一律如此，即使有第二個螢幕" },
   "presenterViewWindow": { "message": "在獨立視窗中" },
+  "presenterViewWindowHint": { "message": "與 Google 簡報的預設做法相同，Meet 的浮動通話視窗也會保持開啟" },
   "presenterViewFloats": { "message": "浮動時顯示" },
   "floatsAll": { "message": "整個簡報者檢視" },
   "floatsAllHint": { "message": "計時器、投影片和您的備忘稿" },

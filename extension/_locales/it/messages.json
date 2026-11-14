@@ -114,6 +114,7 @@
   "presenterViewFloating": { "message": "Fluttuante sopra la presentazione" },
   "presenterViewFloatingHint": { "message": "sempre, anche con un secondo schermo" },
   "presenterViewWindow": { "message": "In una finestra sua" },
+  "presenterViewWindowHint": { "message": "come fa normalmente Presentazioni, e anche la finestra mobile della chiamata Meet resta aperta" },
   "presenterViewFloats": { "message": "Quando fluttua, mostra" },
   "floatsAll": { "message": "Tutta la visualizzazione presentatore" },
   "floatsAllHint": { "message": "il timer, le slide e le tue note" },

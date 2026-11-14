@@ -80,6 +80,38 @@ test('S floats presenter view over the slideshow, all of it working, and S again
   }).toPass({ timeout: 5000 });
 });
 
+// Chrome floats one window at a time, across tabs, so Meet's floating call window, opened from
+// Meet's menu, takes presenter view's place. Another tab stands in for Meet here.
+test('when another tab’s floating window takes its place, S brings presenter view back', async ({
+  context,
+}) => {
+  const { page, windows } = await startShow(context);
+  let opened = context.waitForEvent('page');
+  await page.keyboard.press('s');
+  const presenter = await opened;
+  await expect(timer(presenter)).toBeVisible();
+
+  // A plain page of Google's, as picture-in-picture needs a secure page.
+  const meet = await context.newPage();
+  await meet.goto('https://docs.google.com/robots.txt');
+  await meet.evaluate(() => {
+    document.onclick = () => documentPictureInPicture.requestWindow({ width: 300, height: 300 });
+  });
+  await meet.mouse.click(50, 50);
+  await expect.poll(() => presenter.isClosed()).toBe(true);
+  const meetsWindow = await meet.evaluateHandle(() => documentPictureInPicture.window);
+
+  await page.bringToFront();
+  await page.mouse.move(310, 500);
+  opened = context.waitForEvent('page');
+  await page.keyboard.press('s');
+  const back = await opened;
+  await expect(timer(back)).toBeVisible();
+  expect(await floating(back)).toBe(true);
+  expect(await meetsWindow.evaluate((window) => window.closed)).toBe(true);
+  expect(newWindows(context, windows).filter((window) => window !== meet)).toEqual([back]);
+});
+
 const isFullScreen = (page) => page.evaluate(() => Boolean(document.fullscreenElement));
 // Back to full screen with Slides' ⋮ › Enter full screen, should opening the window have left it.
 async function fullScreen(page, show) {
