@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: الموقّت والتكبير وملاحظات المحاضر لعروض Google التقديمية™" },
-  "extensionDescription": { "message": "أدوات للمقدِّمين في العروض التقديمية من Google." },
+  "extensionDescription": { "message": "أدوات مجانية للمقدِّمين في العروض التقديمية من Google™: الصور عن قرب، والروابط على الشريحة، وعدّ تنازلي، وملاحظات عائمة فوق العرض." },
   "settingsLabel": { "message": "إعدادات Slides Companion" },
 
   "spotlightMenuItem": { "message": "تسليط الضوء على الصورة" },

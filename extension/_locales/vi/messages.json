@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: hẹn giờ, thu phóng & ghi chú cho Google Trang trình bày™" },
-  "extensionDescription": { "message": "Công cụ dành cho người trình bày trên Google Trang trình bày." },
+  "extensionDescription": { "message": "Công cụ trình bày miễn phí cho Google Trang trình bày™: ảnh cận cảnh, liên kết trên trang chiếu, đếm ngược và ghi chú nổi." },
   "settingsLabel": { "message": "Cài đặt Slides Companion" },
 
   "spotlightMenuItem": { "message": "Xem hình ảnh trong Tiêu điểm" },

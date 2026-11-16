@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: טיימר, זום והערות הדובר ל-Google Slides™" },
-  "extensionDescription": { "message": "כלים להצגת מצגות ב-Google Slides." },
+  "extensionDescription": { "message": "כלים חינמיים להצגת מצגות ב-Google Slides™: תמונות מקרוב, קישורים על השקופית, ספירה לאחור והערות שצפות מעל המצגת." },
   "settingsLabel": { "message": "ההגדרות של Slides Companion" },
 
   "spotlightMenuItem": { "message": "זרקור על התמונה" },

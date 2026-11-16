@@ -33,6 +33,7 @@ extension/   the extension itself (load this folder in Chrome)
 tests/       Playwright tests, run in a separate Chromium
 scripts/     build, release, dev and demo helpers
 brand/       the companion, our mascot: the icon and every picture of him
+site/        the website, on GitHub Pages
 kanban/      the work board, one card per deliverable
 ```
 
@@ -80,7 +81,16 @@ The tests check that every language has every message, with the same placeholder
   2. In the After Effects project, `build/demo/ae/slides-companion-demo.aep`, reload the changed stills and render the comp "Slides Companion demo" to `build/demo/ae/slides-companion-demo-video.mp4`. `build/` isn't in git, so the maintainer keeps the project.
   3. `npm run demo:finish` makes the sound, puts it on the render, and writes the store's video and the README's lighter copy into `build/demo/`. It needs [ffmpeg](https://ffmpeg.org). [STORE.md](STORE.md) says where each goes.
 
+  `npm run demo:screenshots` makes the store's five screenshots from the same stills, into `build/demo/store/` ([STORE.md](STORE.md#screenshots)).
+
   `npm run demo:record` records the features in action, to check that the video moves as the extension does. It needs a quiet computer: a busy one stretches the timing.
+
+## The website
+
+The website is one page, in `site/`. `npm run site` puts it together in `build/site/`, filling in what it shares with the extension and the brand: the companion and how he moves, Settings' illustrations, the icon and the languages. GitHub publishes it at <https://jpesce.github.io/slides-companion-for-google-slides/> whenever a push to `main` changes any of those.
+
+- `npm run site:serve` shows it at <http://localhost:4520>, put together again on every reload.
+- `npm run site:pictures` draws its pictures and the film into `site/media/`, from the demo's stills and video: run it after `npm run demo` and `npm run demo:finish`.
 
 ## The board
 
