@@ -11,6 +11,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { sections } from './changelog.mjs';
 
 const MANIFEST = new URL('../extension/manifest.json', import.meta.url);
 const CHANGELOG = new URL('../CHANGELOG.md', import.meta.url);
@@ -18,32 +19,31 @@ const UNRELEASED = 'Unreleased';
 
 export const version = () => JSON.parse(fs.readFileSync(MANIFEST, 'utf8')).version;
 
-// A version's section: from its "## v1.2.3 - date" heading to the next "## ".
+// A version's section: from its "## v1.2.3 - date" heading to the next "## ", read as the website
+// reads it (scripts/changelog.mjs).
 export function section(text, number) {
-  const lines = text.split('\n');
-  const start = lines.findIndex((line) =>
-    new RegExp(`^## v${number.replaceAll('.', '\\.')}(\\s|$)`).test(line),
-  );
-  if (start < 0) return null;
-  const end = lines.findIndex((line, index) => index > start && line.startsWith('## '));
-  return {
-    heading: lines[start],
-    body: lines
-      .slice(start + 1, end < 0 ? undefined : end)
-      .join('\n')
-      .trim(),
-  };
+  return sections(text).find((found) => found.number === number) ?? null;
 }
 
+// A version's notes, for its tag and its GitHub release, once its section is ready to be both: a
+// heading the website can read too, so What's new shows what GitHub does, and a date.
 export function notes(number, text = fs.readFileSync(CHANGELOG, 'utf8')) {
   const found = section(text, number);
   if (!found)
     throw new Error(
       `CHANGELOG.md has no section for v${number}. Add "## v${number} - YYYY-MM-DD" with what changed.`,
     );
+  if (!found.readable)
+    throw new Error(
+      `CHANGELOG.md's heading "${found.heading}" isn't one the website can read, so v${number} would be on GitHub but not on What's new. Write it "## v${number} - YYYY-MM-DD", with a hyphen.`,
+    );
   if (found.heading.includes(UNRELEASED))
     throw new Error(
       `CHANGELOG.md still says v${number} is ${UNRELEASED}: put today's date in its heading.`,
+    );
+  if (!found.date)
+    throw new Error(
+      `CHANGELOG.md's heading "${found.heading}" needs its date as YYYY-MM-DD, as What's new reads it: "## v${number} - 2026-11-20".`,
     );
   if (!found.body || /^-\s*$/m.test(found.body))
     throw new Error(`CHANGELOG.md's section for v${number} has an empty line to fill in.`);

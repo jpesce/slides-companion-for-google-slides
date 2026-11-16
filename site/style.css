@@ -17,8 +17,14 @@
   --ink: #1f1f1f;
   --ink-2: #444746;
   --ink-3: #5e5e5e;
-  --paper: #f1f3f4;
-  --page: #fff;
+  /* The tiles' grey: a step past Google's Grey 100, so they keep on the off-white page the
+     contrast they had on white. Settings' illustrations are drawn on it too (build-site.mjs). */
+  --paper: #ebedf0;
+  /* Off white, Google's Grey 50, so the white screens in the tiles keep their edges where they
+     run off the tiles: on white, they ran into the page. The tiles' grey still reads against it.
+     What's raised from a surface (a tab, a key) is white. */
+  --page: #f8f9fa;
+  --raised: #fff;
   /* The icon's yellow. */
   --yellow: #ffcf03;
   --line: rgb(0 0 0 / 8%);
@@ -27,6 +33,48 @@
   --radius: 28px;
   /* Material's emphasized decelerate: things arrive fast and settle. */
   --ease: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* A spring's way of arriving, for him: a damped spring's step response (damping 0.6), past
+     where it's going by 9% and back, settled in about 0.9s, as his own springs in
+     companion-motion.js move. */
+  --spring: linear(
+    0,
+    0.031,
+    0.11,
+    0.221,
+    0.347,
+    0.478,
+    0.604,
+    0.719,
+    0.819,
+    0.903,
+    0.97,
+    1.021,
+    1.057,
+    1.08,
+    1.091,
+    1.095,
+    1.092,
+    1.084,
+    1.073,
+    1.061,
+    1.049,
+    1.037,
+    1.026,
+    1.017,
+    1.009,
+    1.003,
+    0.998,
+    0.995,
+    0.992,
+    0.991,
+    0.991,
+    0.991,
+    0.992,
+    0.993,
+    0.994,
+    0.995,
+    1
+  );
 
   /* Each size from a phone's 390px window to a laptop's 1280px, held beyond. */
   --t-hero: clamp(48px, 37.48px + 2.697vw, 72px);
@@ -131,7 +179,31 @@ a {
   margin-inline: auto;
 }
 
+/* Nothing transitions until the page is styled (site.js marks it): Safari can run the script
+   before this stylesheet applies, and every transition then played from the browser's own
+   defaults as the styles arrived, links fading in from blue, buttons into ink, the home page's
+   hidden bar fading out. */
+@media (scripting: enabled) {
+  html:not(.styled) *,
+  html:not(.styled) *::before,
+  html:not(.styled) *::after {
+    transition: none !important;
+  }
+}
+
 /* ---- Buttons ---- */
+
+/* What has its own pressed or picked look (the buttons' press, the tabs' sliding thumb, the bar's
+   pills, the companions' squash) doesn't also get iOS's grey tap box over it. Plain links keep
+   it, as their only sign of a tap. */
+.button,
+.play,
+.tabs a,
+.nav-links a,
+.nav .brand,
+.peek {
+  -webkit-tap-highlight-color: transparent;
+}
 
 .button {
   display: inline-flex;
@@ -149,13 +221,20 @@ a {
     background-color 0.2s,
     transform 0.4s var(--ease);
 }
-/* Material's state layers over ink: 8% white on hover, 12% pressed. */
-.button:hover {
-  background: #353535;
+/* Material's state layers over ink: 8% white on hover, 12% pressed. Pressed, it gives at once
+   (100ms) and springs back slower, on release, as a real key does. Hover only where there's a
+   pointer to hover with: on a phone a tapped button would otherwise stay lit. */
+@media (hover: hover) {
+  .button:hover {
+    background: #353535;
+  }
 }
 .button:active {
   background: #3b3b3b;
   transform: scale(0.97);
+  transition:
+    background-color 0.1s,
+    transform 0.1s cubic-bezier(0.3, 0, 0.2, 1);
 }
 .button-small {
   height: 32px;
@@ -168,18 +247,23 @@ a {
 /* A bar floating over the page rather than spanning it, as Raycast's does: a frosted white pill
    16px down from the top of the window (12px on a phone). It reaches past the page's edges by its
    own padding, so the icon starts where the page does and Add to Chrome ends where it ends. Add
-   to Chrome sits as far inside it all round, so their curves run parallel. A hairline, a soft shadow and a lit top edge lift it off whatever passes under it.
-   It isn't there at the top of the page, where the hero holds the same icon, name and button: it
-   floats down into place once the hero's name has scrolled away (site.js), its links a beat after
-   the name, and stays. Without the script, a <noscript> style shows it. */
+   to Chrome sits as far inside it all round, so their curves run parallel. A hairline, a soft
+   shadow and a lit top edge lift it off whatever passes under it. It isn't there at the top of
+   the page, where the hero holds the same icon, name and button: it floats down into place once
+   the hero's name has scrolled away (site.js), and stays. Without the script, a <noscript> style
+   shows it. */
 :root {
-  --bar: 56px;
+  /* On a phone, a little slimmer, so the name and the button have room around them, with the
+     button as far inside the bar all round as on a wide screen, in proportion. */
+  --bar: 52px;
   --bar-top: 12px;
-  --bar-pad: 10px;
+  --bar-pad: 8px;
 }
 @media (min-width: 734px) {
   :root {
+    --bar: 56px;
     --bar-top: 16px;
+    --bar-pad: 10px;
   }
 }
 .nav {
@@ -188,6 +272,31 @@ a {
   top: var(--bar-top);
   inset-inline: 0;
   pointer-events: none;
+}
+/* The bar's rim, lit, and no heavier than a plain one: a single hairline, as the bar had, but a
+   light up and to the left, as over a desk, catches it there and fades along it, its underside a
+   shade darker and the shadow falling a little to the right, as a real pane's would. A second,
+   inner line for the glass's own shine made the edge read twice as thick. The colours are
+   registered so the rim fades with the glass when the bar turns dark, rather than snapping. */
+@property --rim-top {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --rim-bottom {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --glint {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --sheen {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
 }
 .nav-inner {
   position: relative;
@@ -198,79 +307,140 @@ a {
   height: var(--bar);
   padding: 0 var(--bar-pad);
   border-radius: calc(var(--bar) / 2);
+  --rim-top: rgb(0 0 0 / 4%);
+  --rim-bottom: rgb(0 0 0 / 9%);
+  --glint: rgb(255 255 255 / 80%);
+  --sheen: rgb(255 255 255 / 60%);
   color: var(--ink);
-  background: rgb(255 255 255 / 72%);
+  background-color: rgb(255 255 255 / calc(72% * var(--lift)));
+  background-image: radial-gradient(
+    30% 220% at var(--light),
+    color-mix(in srgb, var(--sheen) calc(100% * var(--lift)), transparent),
+    transparent
+  );
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 80%),
-    0 0 0 1px rgb(0 0 0 / 6%),
-    0 1px 2px rgb(0 0 0 / 4%),
-    0 12px 32px -12px rgb(0 0 0 / 18%);
+    0 1px 2px rgb(0 0 0 / calc(4% * var(--lift))),
+    3px 12px 32px -12px rgb(0 0 0 / calc(18% * var(--lift)));
   pointer-events: auto;
   transition:
-    opacity 0.3s,
-    translate 0.6s var(--ease),
-    scale 0.6s var(--ease),
+    opacity 0.24s cubic-bezier(0, 0, 0.2, 1),
+    translate 0.5s cubic-bezier(0.2, 0, 0, 1),
     visibility 0s,
     color 0.3s,
     background-color 0.3s,
-    box-shadow 0.3s;
+    box-shadow 0.3s,
+    --rim-top 0.3s,
+    --rim-bottom 0.3s,
+    --glint 0.3s,
+    --sheen 0.3s;
+}
+/* Where the light is: over the icon's end, a little in, so the brightest of the rim runs along the
+   bar's top rather than sitting on its rounded end. --lift is how far the bar has risen off the
+   page: on the pages that open with it in place, it rests flat at the top, nothing yet under it to
+   float over, and lifts into its glass, rim and shadow as the page scrolls (site.js). */
+.nav {
+  --light: 20% 0%;
+  --lift: 1;
+}
+/* The rim: a hairline cut out of a gradient, the glint over the edge's own shading. */
+.nav-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background:
+    radial-gradient(30% 300% at var(--light), var(--glint), transparent 75%),
+    linear-gradient(var(--rim-top), var(--rim-bottom));
+  /* The prefixed pair first, for browsers before the standard mask (Chrome before 120), which
+     would otherwise fill the whole bar with the rim's gradient. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: var(--lift);
+  pointer-events: none;
 }
 /* Over something dark, as the picture tool's black tile is, white glass would turn a grey
    smudge on it, so the bar turns to dark glass while it's there, as Apple's bar does over a dark
    section, Add to Chrome turning white to stay the brightest thing in it (site.js sets .dark). */
 .nav.dark .nav-inner {
+  --rim-top: rgb(255 255 255 / 11%);
+  --rim-bottom: rgb(255 255 255 / 5%);
+  --glint: rgb(255 255 255 / 38%);
+  --sheen: rgb(255 255 255 / 8%);
   color: #fff;
-  background: rgb(31 31 31 / 72%);
+  background-color: rgb(31 31 31 / 72%);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 10%),
-    0 0 0 1px rgb(255 255 255 / 10%),
     0 1px 2px rgb(0 0 0 / 20%),
-    0 12px 32px -12px rgb(0 0 0 / 50%);
+    3px 12px 32px -12px rgb(0 0 0 / 50%);
 }
 .nav.dark .nav-links a {
   color: rgb(255 255 255 / 72%);
 }
-.nav.dark .nav-links a:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 12%);
-}
-.nav .button-small {
-  transition:
-    background-color 0.3s,
-    color 0.3s,
-    transform 0.2s;
+@media (hover: hover) {
+  .nav.dark .nav-links a:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 12%);
+  }
 }
 .nav.dark .button-small {
   color: var(--ink);
-  background: #fff;
+  background: var(--raised);
 }
-.nav.dark .button-small:hover {
-  background: #e8eaed;
+@media (hover: hover) {
+  .nav.dark .button-small:hover {
+    background: #e8eaed;
+  }
 }
+/* The way in: the glass first, fading in quickly as it floats down 10px, so the float is seen
+   rather than spent while it's still clear (the page's own arrival curve had moved it most of the
+   way in its first 80ms, behind a half-faded bar); then what's on it, in reading order, the name
+   taking over from the hero's, the links and Add to Chrome, which the hero's own still shows. No
+   scale: on a bar this wide, 2% was a 24px zoom, twice the drop. The way out is quicker, about
+   two-thirds the time, accelerating away up the way it came, everything on the glass going with
+   it: emptied first, it had left a blank pill to fade. What's on it hides only once it's gone. */
 .nav:not(.docked) .nav-inner {
   visibility: hidden;
   opacity: 0;
-  translate: 0 -12px;
-  scale: 0.98;
+  translate: 0 -10px;
   transition:
-    opacity 0.2s,
-    translate 0.2s,
-    scale 0.2s,
+    opacity 0.18s cubic-bezier(0.4, 0, 1, 1),
+    translate 0.2s cubic-bezier(0.4, 0, 1, 1),
     visibility 0s 0.2s;
 }
 .nav .brand,
-.nav .nav-links {
-  transition: opacity 0.4s 0.08s;
+.nav .nav-links,
+.nav .button-small {
+  transition: opacity 0.3s cubic-bezier(0, 0, 0.2, 1) 0.06s;
 }
 .nav .nav-links {
-  transition-delay: 0.16s;
+  transition-delay: 0.11s;
+}
+.nav .button-small {
+  transition:
+    opacity 0.3s cubic-bezier(0, 0, 0.2, 1) 0.16s,
+    background-color 0.3s,
+    color 0.3s,
+    transform 0.4s var(--ease);
 }
 .nav:not(.docked) .brand,
-.nav:not(.docked) .nav-links {
+.nav:not(.docked) .nav-links,
+.nav:not(.docked) .button-small {
   opacity: 0;
-  transition: none;
+  transition: opacity 0s 0.2s;
+}
+/* Already scrolled past the hero when the page opens (a reload, a link to a part of it): the bar
+   is simply there. */
+.nav.instant .nav-inner,
+.nav.instant .nav-inner * {
+  transition: none !important;
 }
 .brand {
   display: inline-flex;
@@ -281,6 +451,14 @@ a {
   font-size: 16px;
   font-weight: 500;
   text-decoration: none;
+}
+/* In the bar, the icon is round, as tall as Add to Chrome and as far inside the bar all round, so
+   the bar's two ends match and its curve runs parallel to the bar's: the companion peeks from a
+   round window. The app icon's own square stays where it stands alone, in the hero. */
+.nav .brand img {
+  width: calc(var(--bar) - 2 * var(--bar-pad));
+  height: calc(var(--bar) - 2 * var(--bar-pad));
+  border-radius: 50%;
 }
 /* In the middle of the bar, as on Raycast's, so the name holds the left and Add to Chrome the
    right. Each is a pill of its own on hover, as Slides' menu bar items are. */
@@ -294,26 +472,38 @@ a {
   padding: 0 18px;
   font-size: 15px;
 }
-.nav-links a,
-.footer-links a {
-  color: var(--ink-2);
-  font-size: 14px;
-  text-decoration: none;
-  transition: color 0.2s;
+/* On a phone the name and the button come down a size, and on the narrowest only the icon stays,
+   so the button never runs into the name. */
+@media (max-width: 733px) {
+  .nav .brand {
+    gap: 8px;
+    font-size: 15px;
+  }
+  .nav .button-small {
+    padding: 0 14px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 359px) {
+  .nav .brand span {
+    display: none;
+  }
 }
 .nav-links a {
   padding: 8px 14px;
   border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 14px;
+  text-decoration: none;
   transition:
     color 0.2s,
     background-color 0.2s;
 }
-.nav-links a:hover {
-  background: rgb(0 0 0 / 5%);
-}
-.nav-links a:hover,
-.footer-links a:hover {
-  color: var(--ink);
+@media (hover: hover) {
+  .nav-links a:hover {
+    background: rgb(0 0 0 / 5%);
+    color: var(--ink);
+  }
 }
 @media (min-width: 734px) {
   .nav-links {
@@ -377,11 +567,37 @@ h1 {
     display: none;
   }
 }
+/* A phone or a tablet can't add extensions: site.js turns Add to Chrome into a way to send the
+   link to the computer, and the small print says it's for the computer rather than which browsers.
+   The bar's button says it short, as the name leaves it little room. */
+.for-phone,
+.send-short {
+  display: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .for-computer {
+    display: none;
+  }
+  .for-phone {
+    display: inline;
+  }
+}
+@media (max-width: 733px) {
+  .send-long {
+    display: none;
+  }
+  .send-short {
+    display: inline;
+  }
+}
 /* Next to each Add to Chrome: free and open source, the link to the code there but quiet. */
 .fine a {
   text-decoration: underline;
   text-decoration-color: rgb(0 0 0 / 24%);
   text-underline-offset: 3px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
 }
 .fine a:hover {
   color: var(--ink);
@@ -405,6 +621,17 @@ h1 {
   width: 100%;
   height: auto;
   overflow: visible;
+}
+/* As the page opens he comes up from behind the film, as from behind a laptop's lid, past where
+   he peeks and back, on a spring (site.js then has him read the headline). Where the film's edge
+   isn't in view yet (a phone), site.js brings him up with the scroll instead. */
+.stage .peek {
+  animation: peek-rise 0.9s var(--spring) 0.35s both;
+}
+@keyframes peek-rise {
+  from {
+    translate: 0 calc(var(--peek) * 0.62);
+  }
 }
 .screen {
   position: relative;
@@ -456,8 +683,16 @@ h1 {
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;
 }
-.play:hover {
-  transform: scale(1.04);
+@media (hover: hover) {
+  .play:hover {
+    transform: scale(1.03);
+  }
+}
+.play:active {
+  transform: scale(0.97);
+  transition:
+    opacity 0.3s,
+    transform 0.1s cubic-bezier(0.3, 0, 0.2, 1);
 }
 @media (min-width: 1068px) {
   .play {
@@ -570,6 +805,13 @@ h2 {
     max-width: none;
   }
 }
+/* The live edits' picture sits a little lower in its tile, so the tile's foot crops it in the gap
+   between the slide's footer ("Presenting well", whose g ends at 96.2% of the picture's height) and
+   the editor's own bottom strip (its view buttons and the notes' rule, from 99.2%): at 97.7%, the
+   middle of the gap, cutting no words. The picture scales with the page, so this holds at any width. */
+.tile-live .tile-media {
+  translate: 0 2.3%;
+}
 .tile-dark {
   background: #000;
   color: #fff;
@@ -586,7 +828,9 @@ h2 {
   box-shadow: none;
 }
 /* The notes window on its own, floating, its foot below the tile's edge, in the tile's middle. Its
-   box is the countdown's screen's, so the two tiles' tops line up. */
+   box is the countdown's screen's, so the two tiles' tops line up. The window is sized by its
+   height, to run 24px past the box's foot, so the tile crops it before its rounded corners: sized
+   by its width, its foot landed within a pixel or two of the edge, corners and all. */
 .tile-window {
   position: relative;
   aspect-ratio: 540 / 448;
@@ -598,7 +842,8 @@ h2 {
   position: absolute;
   top: 0;
   left: calc(50% - var(--pad) / 2);
-  width: 66.7%;
+  width: auto;
+  height: calc(100% + 24px);
   translate: -50% 0;
   border-radius: 12px;
   box-shadow:
@@ -653,8 +898,9 @@ h2 {
     grid-area: 3 / 1;
   }
 }
+/* The same margins inside as the tools' tiles, so the words in both start on one line. */
 .cell {
-  padding-bottom: 28px;
+  padding-bottom: var(--pad);
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--paper);
@@ -668,13 +914,13 @@ h2 {
   height: 100%;
 }
 .cell h3 {
-  margin: 16px 28px 0;
+  margin: 24px var(--pad) 0;
   font-size: var(--t-small-head);
   line-height: 1.24;
   letter-spacing: -0.005em;
 }
 .cell p {
-  margin: 6px 28px 0;
+  margin: 10px var(--pad) 0;
   color: var(--ink-2);
   font-size: var(--t-body);
   line-height: 1.5;
@@ -791,6 +1037,9 @@ h2 {
   text-decoration: underline;
   text-decoration-color: rgb(0 0 0 / 24%);
   text-underline-offset: 3px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
 }
 .steps a:hover {
   color: var(--ink);
@@ -861,9 +1110,10 @@ h2 {
 }
 /* Sparkles: site.js lights them around the word for as long as it's highlighted, each growing as
    it turns and shrinking as it goes, in Google Slides' yellows, a shade deeper than the stroke so
-   they show on white. Without the script, or with reduced motion, one sits beside it, still. */
+   they show on white. They're drawn in one SVG over the step, the size of the step, so they can go
+   past its edges. Without the script, or with reduced motion, one sits beside it, still. */
 .sparkle,
-.spark {
+.sparks {
   position: absolute;
   pointer-events: none;
 }
@@ -876,10 +1126,12 @@ h2 {
 .steps mark.live .sparkle {
   display: none;
 }
-.spark {
-  z-index: 1;
-  translate: -50% -50%;
-  scale: 0;
+.sparks {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  overflow: visible;
 }
 
 /* ---- The end: the companion rises from the bottom edge, as on the icon ---- */
@@ -906,57 +1158,661 @@ h2 {
   margin: var(--stack) auto 0;
 }
 
-/* ---- The foot of the page ---- */
+/* ---- The foot of the page: "You're in good company." ----
 
+   The words are the footer's frame: as wide as the page, their letters' own edges on its edges,
+   sitting on its foot. On a laptop, where the first row is shorter than the second, the name, the
+   links and the small print sit in the room it leaves: the name and the links on one baseline,
+   the small print's last line on the first row's, and the links, the small print and the full
+   stop ending on one line. On a phone and a tablet they stack above the words. The o's of "good"
+   are his eyes: they follow the pointer, or the link in focus, and blink now and then. site.js
+   sizes the words and places the eyes and the small print. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .footer {
   margin-top: var(--section);
-  padding: 40px 0 56px;
+  overflow: hidden;
+}
+.footer-frame {
+  position: relative;
+  padding-top: 32px;
   border-top: 1px solid var(--line);
 }
-.footer-inner {
+.footer-top {
   display: grid;
   gap: 20px;
 }
-.footer .brand {
-  font-size: 15px;
-}
 .footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 28px;
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 10px 40px;
 }
-.legal {
-  max-width: 52em;
-  color: var(--ink-3);
+.footer-name,
+.footer-links a {
+  color: var(--ink-2);
+  font-size: 15px;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+}
+.footer-name {
+  justify-self: start;
+  color: var(--ink);
+  font-weight: 500;
+}
+.footer-name:hover,
+.footer-links a:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+/* Quiet: as light as small words on white can be and still be read (4.5:1). */
+.footer-legal {
+  max-width: 34em;
+  margin-top: 20px;
+  color: #767676;
   font-size: 12px;
   line-height: 1.6;
+  text-wrap: pretty;
+}
+/* A grid, so the rows' windows can reach past their lines without their margins merging. The
+   size is the script's, fitted to the page; 20vw is near it, for before the script runs. */
+.footer-phrase {
+  position: relative;
+  display: grid;
+  /* Pressed, his eyes smile (site.js): a press shouldn't select the words or flash a tap's grey. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  justify-items: start;
+  margin-top: 56px;
+  color: var(--ink);
+  font-size: 20vw;
+  font-weight: 500;
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+/* Each row is the window its line rises through: it reaches past the line's box, above for the
+   apostrophe and the d, below for the tails, so it cuts nothing once the line is in place. */
+.footer-row {
+  display: block;
+  width: max-content;
+  overflow: clip;
+  padding: 0.3em 0.12em 0.25em;
+  margin: -0.3em -0.12em -0.25em;
+}
+.footer-line {
+  position: relative;
+  display: block;
+}
+/* Each row's first letter's ink on the page's edge, not its box: Y's arm reaches a hair past
+   its box, g's bowl starts a little inside it. Measured on screen, in em. The rows are the phrase's second and
+   third children, after the words for screen readers. */
+.footer-row:nth-child(2) .footer-line {
+  margin-left: 0.0026em;
+}
+.footer-row:nth-child(3) .footer-line {
+  margin-left: -0.0208em;
+}
+/* A mark on a line's baseline, for the script to find it by. */
+.footer-base {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  vertical-align: baseline;
+}
+@media (min-width: 734px) {
+  .footer-links {
+    grid-template-columns: repeat(4, max-content);
+    gap: 10px 28px;
+  }
+  .footer-links a {
+    font-size: 14px;
+  }
 }
 @media (min-width: 1068px) {
-  .footer-inner {
-    grid-template-columns: auto 1fr;
-    align-items: center;
+  .footer-frame {
+    padding-top: 36px;
   }
-  .footer-links {
-    justify-content: flex-end;
+  .footer-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
   }
-  .legal {
+  .footer-phrase {
+    margin-top: 20px;
+  }
+  /* In the room beside the first row, its lines even, no word left alone on the last. Its last
+     line sits 3px above the first row's baseline: on it exactly, the small words looked to sink
+     beside the big ones. */
+  .footer-legal {
+    position: absolute;
+    right: 0;
+    margin: 0;
+    translate: 0 -3px;
+    text-wrap: balance;
+  }
+}
+/* An eye: a window cut to the inside of the o, so the pupil can't leave it, and lids of the
+   letter's ink, drawn by the script as they blink. */
+.footer-eye {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.footer-pupil,
+.footer-lid {
+  position: absolute;
+  display: block;
+  background: currentColor;
+}
+.footer-pupil {
+  top: 50%;
+  left: 50%;
+  width: var(--pupil);
+  height: var(--pupil);
+  border-radius: 50%;
+  translate: calc(-50% + var(--x, 0px)) calc(-50% + var(--y, 0px));
+}
+.footer-lid {
+  inset: 0;
+  visibility: hidden;
+}
+/* Without the script there's nothing to place them. */
+.footer-phrase:not(.placed) .footer-eye {
+  display: none;
+}
+
+/* The way in, the first time it's reached: each line rises through its window from under its own
+   baseline, as he rises from the icon's edge, the second a beat after the first, so it reads as
+   it's said. Only position and opacity move, so it stays smooth. The fade is quicker than the
+   rise: each line is whole well before it settles. The rise starts gently and settles long, rather
+   than the page's own arrival curve, which suits its short nudges but made a line's height pop.
+   His eyes are open on the way up; he blinks once as "good company." settles. With reduced motion,
+   the words only fade in. */
+.footer-line {
+  transition:
+    translate 1.2s cubic-bezier(0.3, 0, 0, 1),
+    opacity 0.8s cubic-bezier(0.3, 0, 0.2, 1);
+}
+.footer-row:nth-child(3) .footer-line {
+  transition-delay: 110ms;
+}
+/* 1.15em, a line and a third below where it rests, out of its window. In em rather than as 135% of
+   the line, which Safari resolved against a box a third taller than the one it reports. */
+.footer-phrase.unrisen .footer-line {
+  translate: 0 1.15em;
+  opacity: 0;
+  transition-duration: 0s;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-phrase.unrisen .footer-line {
+    translate: none;
+  }
+  .footer-line {
+    transition: opacity 0.6s;
+  }
+}
+@media print {
+  .footer-phrase.unrisen .footer-line {
+    translate: none;
+    opacity: 1;
+  }
+}
+
+/* ---- What's new and the privacy policy (whats-new.html, privacy.html) ---- */
+
+/* The page you're on, in the bar, is lit as a hovered link is. */
+.nav-links a[aria-current='page'] {
+  color: var(--ink);
+  background: rgb(0 0 0 / 5%);
+}
+/* Their heroes are words only: the bar is in place from the start, holding the icon, the name and
+   Add to Chrome, so the hero starts a stack's room below it rather than behind it. */
+.page-hero {
+  padding-top: calc(var(--bar-top) + var(--bar) + var(--stack));
+}
+.page-hero .lead + .lead {
+  margin-top: 12px;
+}
+/* No tabular figures here: WebKit widens the space before a link in a line set with them, and a
+   single date doesn't need its digits to line up. */
+.release-date {
+  max-width: 40em;
+  margin: 24px auto 0;
+}
+.release-date a,
+.notes a {
+  text-decoration: underline;
+  text-decoration-color: rgb(0 0 0 / 24%);
+  text-underline-offset: 3px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+}
+.release-date a:hover,
+.notes a:hover {
+  color: var(--ink);
+  text-decoration-color: currentcolor;
+}
+/* Notes to read run about 70 characters a line at most, in the page's middle, as the sections'
+   headings do; the bar above keeps the page's full width. */
+.read {
+  max-width: 920px;
+}
+.release,
+.parts-section {
+  padding-top: var(--stack);
+}
+
+/* Out now or Coming next, while the code has a version that isn't released yet: a segmented button
+   above the hero, as Google's are, the tab you're on raised in white. Each is a link to an empty
+   mark at the top of the page, so the tab is in the address (#next) and needs no script: the page
+   shows Out now unless #next is the target. */
+.tab-target {
+  position: absolute;
+  top: 0;
+}
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 28px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper);
+}
+.tabs a {
+  padding: 7px 16px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+@media (hover: hover) {
+  .tabs a:hover {
+    color: var(--ink);
+  }
+}
+/* Which tab is open: with the script, the html element's data-tab, which a line in the page's head
+   sets from the address before anything is drawn and site.js keeps in step with it; without it,
+   the address's :target. On :target alone, a link to #next opened on Out now and jumped to Coming
+   next half a second later, as browsers only match :target once the page has loaded. Out now hides
+   only while there are tabs: a link to #next shared before a release, opened once nothing is coming,
+   would otherwise show an empty page. */
+html:not([data-tab]) body:not(:has(#next:target)) .tabs a[href='#now'],
+html:not([data-tab]) body:has(#next:target) .tabs a[href='#next'],
+html[data-tab='now'] .tabs a[href='#now'],
+html[data-tab='next'] .tabs a[href='#next'] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 6%),
+    0 1px 3px rgb(0 0 0 / 10%);
+}
+html:not([data-tab]) body:has(#next:target) .out-now,
+html:not([data-tab]) body:not(:has(#next:target)) .coming-next,
+html[data-tab='next'] body:has(.tabs) .out-now,
+html[data-tab='now'] .coming-next {
+  display: none;
+}
+/* With the script, the white is one raised thumb that slides from tab to tab, stretching to the
+   next one's width, as a segmented control's does, rather than jumping; and the tab's page fades
+   up into place as it swaps in. Without it, the tab you're on is raised on its own, as above. */
+.tabs {
+  position: relative;
+}
+.tabs-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 999px;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 6%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  transition:
+    translate 0.4s cubic-bezier(0.2, 0, 0, 1),
+    width 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+.tabs.sliding a {
+  position: relative;
+  /* Over the selected tab's own raised white, which the thumb takes over from. */
+  background: none !important;
+  box-shadow: none !important;
+}
+.switching .out-now,
+.switching .coming-next {
+  transition:
+    opacity 0.4s cubic-bezier(0.2, 0, 0, 1),
+    translate 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+@starting-style {
+  .switching .out-now,
+  .switching .coming-next {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+.next-number {
+  color: var(--ink-3);
+  font-size: 15px;
+  font-weight: 500;
+}
+.also-next {
+  margin-top: var(--stack);
+}
+
+/* The latest version's changes on one grey surface, as the tools' tiles are: each named one beside
+   its name, as Apple's what's new lists go, so long and short ones sit evenly where cards side by
+   side would leave the short ones half empty. On a phone, each name above its words. */
+.changes {
+  padding: 4px var(--pad);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.change {
+  display: grid;
+  align-items: baseline;
+  gap: 6px 40px;
+  padding: 28px 0;
+}
+.change + .change {
+  border-top: 1px solid var(--line);
+}
+@media (min-width: 734px) {
+  .change {
+    grid-template-columns: minmax(0, 12em) minmax(0, 1fr);
+  }
+  .change-plain p {
     grid-column: 1 / -1;
-    max-width: none;
+  }
+}
+.change h3 {
+  font-size: var(--t-small-head);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.change p,
+.change li,
+.notes p,
+.notes li {
+  color: var(--ink-2);
+}
+.change ul,
+.notes ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.change li,
+.notes li {
+  position: relative;
+  padding-left: 22px;
+}
+/* A small dot, centred on the item's first line. */
+.change li::before,
+.notes li::before {
+  content: '';
+  position: absolute;
+  top: calc(0.75em - 2.5px);
+  left: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+/* From a tablet up, the dots hang in the margin, so each item's words line up with the heading and
+   the paragraphs above them, as a book sets a list. A phone's margin is too narrow to hang them in. */
+@media (min-width: 734px) {
+  .change li,
+  .notes li {
+    padding-left: 0;
+  }
+  .change li::before,
+  .notes li::before {
+    left: -17px;
+  }
+}
+/* Google Sans Flex is loaded up to 500, so bold is 500 rather than a faked heavier weight. */
+.change strong,
+.notes strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+/* Keys as keycaps, a little raised, white on the grey surface. */
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 0 0.45em;
+  border: 1px solid rgb(0 0 0 / 14%);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 0.82em / 1.45 var(--font);
+  text-align: center;
+  white-space: nowrap;
+}
+/* Code in Google Sans Code, the family's own monospace, so it sits in the words rather than
+   interrupting them; a tight tint, so no gap opens before the colon after it. Long names (a
+   permission, an address) break where they must rather than push the page wide. */
+code {
+  overflow-wrap: anywhere;
+  padding: 0.06em 0.22em;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 5%);
+  font:
+    0.9em / 1 'Google Sans Code',
+    ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+}
+
+/* Earlier versions: each under a rule, its number and date beside its notes, and, on a wide enough
+   window, staying in view beside them as they scroll, as GitHub's releases page sets them. A link to
+   a version brings its rule to just under the bar. */
+.versions {
+  margin-top: var(--stack);
+}
+/* The list's heading, on its left edge rather than centred over it, so it reads as the index's. */
+.earlier .section-head {
+  margin: 0;
+  text-align: left;
+}
+/* The number and date share the title's baseline, rather than floating above it. */
+.version {
+  display: grid;
+  align-items: baseline;
+  gap: 12px 48px;
+  padding: 40px 0 48px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: calc(var(--bar-top) + var(--bar) + 8px);
+}
+.version-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  color: var(--ink-3);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.version-number {
+  color: var(--ink);
+  font-size: var(--t-small-head);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s;
+}
+.version-number:hover {
+  text-decoration-color: rgb(0 0 0 / 24%);
+}
+@media (min-width: 734px) {
+  .version {
+    grid-template-columns: 10em minmax(0, 1fr);
+  }
+  .version-side {
+    position: sticky;
+    top: calc(var(--bar-top) + var(--bar) + 32px);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.notes h2 {
+  font-size: var(--t-tile-half);
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+/* A version's title, where the section above names them all. */
+.version .notes > h3:first-child {
+  margin-top: 0;
+  font-size: var(--t-tile-half);
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+.notes h3 {
+  margin-top: 28px;
+  font-size: var(--t-small-head);
+  line-height: 1.3;
+}
+/* The privacy policy's parts: each under a rule, its number a quiet label on the heading's
+   baseline, set as the steps to start set theirs. */
+.part-number {
+  color: var(--ink-3);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.notes p {
+  margin-top: 12px;
+}
+.notes ul {
+  margin-top: 20px;
+}
+/* Long enough to read without losing the line: about 70 characters. */
+.notes p,
+.notes ul,
+.change p,
+.change ul {
+  max-width: 34em;
+}
+.notes .version-github {
+  margin-top: 24px;
+  font-size: 15px;
+}
+.version-github a {
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-decoration-color: rgb(0 0 0 / 24%);
+  text-underline-offset: 3px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+}
+.version-github a:hover {
+  color: var(--ink);
+  text-decoration-color: currentcolor;
+}
+
+/* ---- From page to page ----
+
+   Going from one page to another, the bar stays where it is, turning into the new page's, while
+   the page under it fades: the old one quickly, the new one up into place, as the tabs' pages do.
+   Browsers without cross-document view transitions simply change page. */
+@view-transition {
+  navigation: auto;
+}
+.nav-inner {
+  view-transition-name: bar;
+}
+::view-transition-group(bar) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+/* The old bar goes with the old page, quickly, and the new one is there almost at once: crossfaded
+   over the whole 350ms, a floating bar going to a page where it rests flat was still floating a
+   quarter of a second in. */
+::view-transition-old(bar) {
+  animation: 0.16s cubic-bezier(0.4, 0, 1, 1) both page-out;
+}
+::view-transition-new(bar) {
+  animation: 0.18s cubic-bezier(0.2, 0, 0, 1) both bar-in;
+}
+@keyframes bar-in {
+  from {
+    opacity: 0;
+  }
+}
+::view-transition-old(root) {
+  animation: 0.16s cubic-bezier(0.4, 0, 1, 1) both page-out;
+}
+::view-transition-new(root) {
+  animation: 0.4s cubic-bezier(0.2, 0, 0, 1) 0.06s both page-in;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+/* Pages that open with the bar in place (.lifts) have it resting flat, site.js lifting it as they
+   scroll: flat from the first frame, so it doesn't open floating and then settle, and the page it's
+   coming from doesn't hand over a floating one. Without the script it floats, as nothing would
+   lift it over the words passing under it. */
+@media (scripting: enabled) {
+  .nav.lifts {
+    --lift: 0;
   }
 }
 
 /* ---- Things arrive as they scroll into view (site.js marks those below the fold) ---- */
 
+/* Each rises 24px into place and fades in. The rise starts gently and settles long, as the
+   footer's words do: on the page's arrival curve it jumped 13px in its first 75ms, then crept the
+   last few pixels for a second. The fade is quicker, so each is whole well before it settles.
+   What arrives together, two tiles side by side, comes a beat apart, left to right (site.js sets
+   --delay). */
 .waiting {
   opacity: 0;
-  translate: 0 32px;
+  translate: 0 24px;
 }
 .arrived {
   opacity: 1;
   translate: 0 0;
   transition:
-    opacity 0.9s var(--ease),
-    translate 1.2s var(--ease);
+    opacity 0.6s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s),
+    translate 0.9s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -969,9 +1825,21 @@ h2 {
   }
   .nav-inner {
     translate: none !important;
-    scale: none !important;
   }
   .row {
     animation: none;
+  }
+  .tabs-thumb,
+  .switching .out-now,
+  .switching .coming-next {
+    transition: none;
+  }
+  .stage .peek {
+    animation: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

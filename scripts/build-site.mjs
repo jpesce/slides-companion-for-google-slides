@@ -1,7 +1,10 @@
 // The project's website, put together from site/ into build/site/, which GitHub Pages publishes
 // (.github/workflows/site.yml). The page is written in site/; what it shares with the extension and
 // the brand is added as it's put together, so it never falls behind them: the companion and how he
-// moves, Settings' illustrations, the icon, and the languages the extension speaks.
+// moves, Settings' illustrations, the icon, and the languages the extension speaks. What's new is
+// CHANGELOG.md's versions that GitHub has released, with what's coming next (scripts/changelog.mjs);
+// the privacy policy is PRIVACY.md. Pages are linked by name (/whats-new), as GitHub Pages serves
+// whats-new.html.
 //   node scripts/build-site.mjs            put it together (npm run site)
 //   node scripts/build-site.mjs serve      ...and show it at http://localhost:4520, put together
 //                                          again on every page load (npm run site:serve)
@@ -14,15 +17,18 @@ import http from 'node:http';
 import vm from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { PAPER, peekingDrawing } from './build-brand.mjs';
+import { peekingDrawing } from './build-brand.mjs';
+import { day, releasePages } from './changelog.mjs';
+import { blocks, html, inline } from './markdown.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const SITE = path.join(ROOT, 'site');
 const OUT = path.join(ROOT, 'build/site');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 
-// Settings' illustrations, by feature, as the extension draws them, on the page's grey rather than
-// Settings' blue-grey, so each sits on its tile without a frame.
+// Settings' illustrations, by feature, as the extension draws them, on the tiles' grey (style.css's
+// --paper) rather than Settings' blue-grey, so each sits on its tile without a frame. It's the
+// stylesheet's, so the two can't drift apart.
 function illustrations() {
   const context = { globalThis: {} };
   context.globalThis = context;
@@ -30,7 +36,7 @@ function illustrations() {
   return Object.fromEntries(
     Object.entries(context.slidesCompanion.illustrations).map(([name, svg]) => [
       name,
-      svg.replaceAll(/#f0f4f9/gi, PAPER),
+      svg.replaceAll(/fill="#f0f4f9"/gi, 'style="fill: var(--paper)"'),
     ]),
   );
 }
@@ -47,13 +53,82 @@ function languages() {
     });
 }
 
-// The page with what it shares filled in: {{companion}}, {{illustration name}}, {{languages}} (how
-// many) and {{language names}}.
-function page() {
-  const art = illustrations();
-  const spoken = languages();
-  const { svg } = peekingDrawing();
-  return read('site/index.html').replaceAll(/\{\{([\w -]+)\}\}/g, (_, token) => {
+// The versions GitHub has released, by their tags. Without git, or in a checkout without its tags,
+// there are none.
+function tags() {
+  try {
+    const listed = execFileSync('git', ['tag', '--list', 'v*'], { cwd: ROOT, encoding: 'utf8' });
+    return new Set(listed.split('\n').filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
+// The privacy policy, from PRIVACY.md: its title, its date and first words under it, and each of
+// its numbered parts, the number beside the part as a version's is on What's new.
+export function privacy(markdown) {
+  const all = blocks(markdown);
+  const title = all.find((block) => block.type === 'heading' && block.level === 1);
+  const first = all.findIndex((block) => block.type === 'heading' && block.level === 2);
+  const top = all.slice(0, first < 0 ? undefined : first).filter((block) => block !== title);
+  const date = top.find((block) => block.type === 'paragraph' && /^_[^_]+_$/.test(block.text));
+  const parts = [];
+  for (const block of first < 0 ? [] : all.slice(first)) {
+    if (block.type === 'heading' && block.level === 2)
+      parts.push({ heading: block.text, body: [] });
+    else parts.at(-1).body.push(block);
+  }
+  // Its date as What's new sets dates ("13 November 2026"), whatever way PRIVACY.md writes it.
+  const said = date?.text.slice(1, -1) ?? '';
+  const when = /(\w+ \d{1,2}, \d{4}|\d{1,2} \w+ \d{4}|\d{4}-\d{2}-\d{2})/.exec(said)?.[1];
+  const parsed = when && new Date(`${when} UTC`);
+  const iso = parsed && !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10);
+  return {
+    // In sentence case, as the site's other headings: "Privacy Policy" reads "Privacy policy".
+    'privacy title': inline(
+      (title?.text ?? 'Privacy').replace(
+        / (\p{Lu})(\p{Ll}+)/gu,
+        (_, a, b) => ` ${a.toLowerCase()}${b}`,
+      ),
+    ),
+    'privacy updated': date
+      ? `<p class="fine release-date">${iso ? `Updated <time datetime="${iso}">${day(iso)}</time>` : inline(said)}</p>`
+      : '',
+    'privacy lead': top
+      .filter((block) => block !== date)
+      .map((block) =>
+        block.type === 'paragraph' ? `<p class="lead">${inline(block.text)}</p>` : html([block]),
+      )
+      .join(''),
+    'privacy parts': parts
+      .map(({ heading, body }) => {
+        const [, number, words] = /^(?:(\d+)\.\s+)?(.*)$/.exec(heading);
+        const id = words
+          .toLowerCase()
+          .replaceAll(/[^a-z0-9]+/g, '-')
+          .replaceAll(/^-|-$/g, '');
+        return `<section class="version part" id="${id}" data-reveal>
+            <div class="version-side">${number ? `<span class="part-number">${number}</span>` : ''}</div>
+            <div class="notes">
+              <h2>${inline(words)}</h2>
+              ${html(body, { shift: 1 })}
+            </div>
+          </section>`;
+      })
+      .join('\n          '),
+  };
+}
+
+// What every page may share, made once for all of them.
+function shared() {
+  return { art: illustrations(), spoken: languages(), svg: peekingDrawing().svg };
+}
+
+// A page with what it shares filled in: {{companion}}, {{illustration name}}, {{languages}} (how
+// many), {{language names}}, and what's its own (`own`, by name).
+function page(file, own, { art, spoken, svg }) {
+  return read(`site/${file}`).replaceAll(/\{\{([\w -]+)\}\}/g, (_, token) => {
+    if (Object.hasOwn(own, token)) return own[token];
     const [what, name] = token.split(' ');
     if (what === 'companion') return svg;
     if (what === 'illustration' && art[name]) return art[name];
@@ -69,16 +144,24 @@ function page() {
           return `<div class="row">${names}${names}</div>`;
         })
         .join('');
-    throw new Error(`site/index.html asks for {{${token}}}, which there's nothing to fill in with`);
+    throw new Error(`site/${file} asks for {{${token}}}, which there's nothing to fill in with`);
   });
 }
 
 // Into build/site/ by default; the tests give each worker a folder of its own, so two putting it
-// together at once don't delete each other's files.
-export function assemble(out = OUT) {
+// together at once don't delete each other's files, and may give a changelog and its tags of their
+// own.
+export function assemble(out = OUT, { changelog = read('CHANGELOG.md'), released = tags() } = {}) {
   fs.rmSync(out, { recursive: true, force: true });
   fs.cpSync(SITE, out, { recursive: true });
-  fs.writeFileSync(path.join(out, 'index.html'), page());
+  const pages = {
+    'index.html': { template: 'index.html' },
+    ...releasePages(changelog, { tags: released }),
+    'privacy.html': { template: 'privacy.html', ...privacy(read('PRIVACY.md')) },
+  };
+  const common = shared();
+  for (const [file, { template, ...own }] of Object.entries(pages))
+    fs.writeFileSync(path.join(out, file), page(template, own, common));
   const copy = (from, to) => fs.copyFileSync(path.join(ROOT, from), path.join(out, to));
   copy('extension/companion-motion.js', 'companion-motion.js');
   copy('brand/icon.svg', 'icon.svg');
@@ -108,18 +191,23 @@ const TYPES = {
   '.mp4': 'video/mp4',
 };
 
-// Each page load puts the site together again, so an edit shows on reload. Videos are sent in the
-// ranges the browser asks for, as Pages sends them, so the film can seek.
+// Each page load puts the site together again, so an edit shows on reload. Pages are found by
+// their names, without .html, as GitHub Pages finds them. Videos are sent in the ranges the browser
+// asks for, as Pages sends them, so the film can seek.
 function serve(port = 4520) {
   http
     .createServer((request, response) => {
       const url = new URL(request.url, 'http://localhost');
-      if (url.pathname.endsWith('/')) assemble();
-      const file = path.join(
+      // A page, by its folder, its name (/whats-new, as GitHub Pages serves whats-new.html) or its
+      // file.
+      const named = !path.extname(url.pathname);
+      if (named || url.pathname.endsWith('.html')) assemble();
+      let file = path.join(
         OUT,
         decodeURIComponent(url.pathname),
         url.pathname.endsWith('/') ? 'index.html' : '',
       );
+      if (named && !url.pathname.endsWith('/')) file += '.html';
       if (!file.startsWith(OUT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
         response.writeHead(404).end('Not found');
         return;

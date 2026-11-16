@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bumped, notes, section, withSection, withVersion } from '../scripts/release.mjs';
+import { versions } from '../scripts/changelog.mjs';
 
 // The release steps' helpers (scripts/release.mjs), which decide a release's version and notes.
 // They need no browser.
@@ -41,6 +42,26 @@ test(
     expect(() => notes('1.3.0', withSection(CHANGELOG, '1.3.0'))).toThrow('Unreleased');
     const undatedFilledIn = withSection(CHANGELOG, '1.3.0').replace('Unreleased', '2026-12-01');
     expect(() => notes('1.3.0', undatedFilledIn)).toThrow('empty line');
+  },
+);
+
+test(
+  "notes refuse a heading What's new couldn't read, so nothing on GitHub is missing from it",
+  { tag: '@offline' },
+  () => {
+    // An en dash, as some editors type for a hyphen: GitHub would have had it, What's new not.
+    const dashed = CHANGELOG.replace('## v1.2.0 - 2026-11-09', '## v1.2.0 – 2026-11-09');
+    expect(() => notes('1.2.0', dashed)).toThrow("isn't one the website can read");
+    expect(versions(dashed).map(({ number }) => number)).toEqual(['1.1.0']);
+    // A date What's new can't read: it would show the version undated.
+    const worded = CHANGELOG.replace('## v1.2.0 - 2026-11-09', '## v1.2.0 - 9 November 2026');
+    expect(() => notes('1.2.0', worded)).toThrow('YYYY-MM-DD');
+    expect(() => notes('1.2.0', CHANGELOG.replace(' - 2026-11-09', ''))).toThrow('YYYY-MM-DD');
+    // What the release steps accept, What's new shows, dated.
+    expect(versions(CHANGELOG).map(({ number, date }) => `${number} ${date}`)).toEqual([
+      '1.2.0 2026-11-09',
+      '1.1.0 2026-10-01',
+    ]);
   },
 );
 

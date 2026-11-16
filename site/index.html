@@ -32,7 +32,7 @@
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="640" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#f8f9fa" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -48,10 +48,10 @@
           visibility: visible !important;
           opacity: 1 !important;
           translate: none !important;
-          scale: none !important;
         }
         .nav .brand,
-        .nav .nav-links {
+        .nav .nav-links,
+        .nav .button-small {
           opacity: 1 !important;
         }
       </style></noscript
@@ -70,6 +70,7 @@
         </a>
         <nav class="nav-links" aria-label="Site">
           <a href="#features">Features</a>
+          <a href="whats-new">What’s new</a>
           <a href="https://github.com/jpesce/slides-companion-for-google-slides">GitHub</a>
         </nav>
         <a
@@ -98,7 +99,7 @@
             >
           </div>
           <p class="fine">100% Free and <a href="https://github.com/jpesce/slides-companion-for-google-slides">open source</a>.<br />
-            Works in Chrome, Edge, Brave, Dia and other Chrome-based browsers.</p>
+            <span class="for-computer">Works in Chrome, Edge, Brave, Dia and other Chrome-based browsers.</span><span class="for-phone">Works in Chrome and other Chrome-based browsers on your computer.</span></p>
         </div>
 
         <figure class="wrap stage">
@@ -208,7 +209,7 @@
             </div>
           </article>
 
-          <article class="tile tile-wide" data-reveal>
+          <article class="tile tile-wide tile-live" data-reveal>
             <div class="tile-copy">
               <p class="moment">When the numbers change last minute</p>
               <h3>Fix it while it’s on screen</h3>
@@ -299,7 +300,7 @@
               >Add to Chrome</a
             >
             <p class="fine">100% Free and <a href="https://github.com/jpesce/slides-companion-for-google-slides">open source</a>.<br />
-            Works in Chrome, Edge, Brave, Dia and other Chrome-based browsers.</p>
+            <span class="for-computer">Works in Chrome, Edge, Brave, Dia and other Chrome-based browsers.</span><span class="for-phone">Works in Chrome and other Chrome-based browsers on your computer.</span></p>
             <div class="peek peek-up" aria-hidden="true">{{companion}}</div>
           </div>
         </div>
@@ -313,26 +314,35 @@
     </main>
 
     <footer class="footer">
-      <div class="wrap footer-inner">
-        <a class="brand" href="./">
-          <span>Slides Companion</span>
-        </a>
-        <nav class="footer-links" aria-label="More">
-          <a href="https://github.com/jpesce/slides-companion-for-google-slides">Source code</a>
-          <a href="https://github.com/jpesce/slides-companion-for-google-slides/blob/main/CHANGELOG.md"
-            >What’s new</a
-          >
-          <a href="https://github.com/jpesce/slides-companion-for-google-slides/blob/main/PRIVACY.md"
-            >Privacy</a
-          >
-          <a href="https://github.com/jpesce/slides-companion-for-google-slides/issues/new/choose"
-            >Report a problem</a
-          >
-        </nav>
-        <p class="legal">
-          Free and open source, under the GPL-3.0.
-          Google Slides is a trademark of Google LLC. This extension is not made or endorsed by
-          Google.
+      <div class="wrap footer-frame">
+        <div class="footer-top">
+          <a class="footer-name" href="./">Slides Companion</a>
+          <nav class="footer-links" aria-label="More">
+            <a href="https://github.com/jpesce/slides-companion-for-google-slides">Source code</a>
+            <a href="whats-new">What’s new</a>
+            <a href="privacy">Privacy</a>
+            <a href="https://github.com/jpesce/slides-companion-for-google-slides/issues/new/choose"
+              >Report a problem</a
+            >
+          </nav>
+        </div>
+        <p class="footer-legal">
+          Free and open source, under the GPL-3.0. Google Slides is a trademark of Google LLC. This
+          extension is not made or endorsed by Google.<span class="footer-base"></span>
+        </p>
+        <p class="footer-phrase">
+          <span class="visually-hidden">You’re in good company.</span>
+          <span class="footer-row" aria-hidden="true"
+            ><span class="footer-line">You’re in<span class="footer-base"></span></span
+          ></span>
+          <span class="footer-row" aria-hidden="true"
+            ><span class="footer-line"
+              >g<span class="footer-o">o</span><span class="footer-o">o</span>d company.<span
+                class="footer-base"
+              ></span
+              ><span class="footer-eye"><i class="footer-pupil"></i><i class="footer-lid"></i></span
+              ><span class="footer-eye"><i class="footer-pupil"></i><i class="footer-lid"></i></span></span
+          ></span>
         </p>
       </div>
     </footer>

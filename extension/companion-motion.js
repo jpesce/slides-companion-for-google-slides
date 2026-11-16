@@ -323,9 +323,12 @@
     }
 
     // The pupils start where they're drawn, at rest.
+    const rest = pupils.map((pupil) => [
+      Number(pupil.getAttribute('cx')),
+      Number(pupil.getAttribute('cy')),
+    ]);
     DRAWING.eyes.forEach((eye, i) => {
-      gaze[i][0].x = gaze[i][0].target = Number(pupils[i].getAttribute('cx'));
-      gaze[i][1].x = gaze[i][1].target = Number(pupils[i].getAttribute('cy'));
+      [gaze[i][0].x, gaze[i][1].x] = [gaze[i][0].target, gaze[i][1].target] = rest[i];
     });
     tick();
 
@@ -402,6 +405,22 @@
       interest.target = 0;
       wake();
     });
+
+    // For a page that directs him (the website; Slides' toolbar doesn't): look at a point on
+    // screen, in the window's pixels, as if the mouse were there, until it next moves, or, with no
+    // point, back where he's drawn looking; and blink.
+    return {
+      look(point) {
+        mouse = point;
+        moved = Boolean(point);
+        if (!point)
+          DRAWING.eyes.forEach((eye, i) => {
+            [gaze[i][0].target, gaze[i][1].target] = rest[i];
+          });
+        wake();
+      },
+      blink: () => blink(),
+    };
   }
 
   globalThis.slidesCompanion ??= {};
