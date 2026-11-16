@@ -1,7 +1,9 @@
 # Publishes the website (site/, put together by scripts/build-site.mjs) to GitHub Pages, at
 # https://jpesce.github.io/slides-companion-for-google-slides/, when a push to main changes it or
-# anything it takes from the extension and the brand. Putting it together needs nothing installed:
-# the pictures in site/media/ are drawn on a computer with the demo's stills (npm run site:pictures).
+# anything it takes from the extension, the brand, CHANGELOG.md and PRIVACY.md, and when a GitHub
+# release is published, so What's new shows each version as soon as GitHub does.
+# Putting it together needs nothing installed: the pictures in site/media/ are drawn on a computer
+# with the demo's stills (npm run site:pictures).
 name: Site
 
 on:
@@ -11,31 +13,58 @@ on:
       - site/**
       - scripts/build-site.mjs
       - scripts/build-brand.mjs
+      - scripts/changelog.mjs
+      - scripts/markdown.mjs
       - extension/companion-motion.js
       - extension/illustrations.js
       - extension/_locales/**
       - brand/**
+      - CHANGELOG.md
+      - PRIVACY.md
       - .github/workflows/site.yml
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# One publish at a time; a newer push replaces one still waiting.
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  publish:
+  # A release's own run is at its tag, and GitHub Pages publishes only from main, so it asks for the
+  # site to be published again from main, where the new tag now counts. The workflow's own token
+  # can start that run by asking for it (workflow_dispatch), as it couldn't by pushing.
+  republish:
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh workflow run site.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  publish:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # One publish at a time; a newer one replaces one still waiting.
+    concurrency:
+      group: pages
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # With the tags: a version shows on the site once its release's tag exists. All of history,
+      # since a shallow fetch (fetch-depth: 1) only follows tags on the commit it fetches, even with
+      # fetch-tags, and the older releases would drop off What's new.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

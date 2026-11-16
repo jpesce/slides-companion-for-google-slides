@@ -87,7 +87,7 @@ The tests check that every language has every message, with the same placeholder
 
 ## The website
 
-The website is one page, in `site/`. `npm run site` puts it together in `build/site/`, filling in what it shares with the extension and the brand: the companion and how he moves, Settings' illustrations, the icon and the languages. GitHub publishes it at <https://jpesce.github.io/slides-companion-for-google-slides/> whenever a push to `main` changes any of those.
+The website is in `site/`: the home page, What's new (`/whats-new`) and the privacy policy (`/privacy`). `npm run site` puts it together in `build/site/`, filling in what it shares with the extension and the brand: the companion and how he moves, Settings' illustrations, the icon and the languages. What's new is every version in CHANGELOG.md that GitHub has released, each once, with the notes its GitHub release has, so nobody has to go to GitHub for them: the latest at the top, the ones before it under it, each at its own link (`/whats-new#v1.0.0`). A version shows once its release's tag exists. While the code has a version that isn't released yet, the page has two tabs: Out now, the default, and Coming next (`/whats-new#next`), which shows that version as the latest is shown, with how to install it from the code. The privacy page is PRIVACY.md. GitHub publishes the site at <https://jpesce.github.io/slides-companion-for-google-slides/> whenever a push to `main` changes any of those, and whenever a release is published.
 
 - `npm run site:serve` shows it at <http://localhost:4520>, put together again on every reload.
 - `npm run site:pictures` draws its pictures and the film into `site/media/`, from the demo's stills and video: run it after `npm run demo` and `npm run demo:finish`.
@@ -116,7 +116,7 @@ Every card states the presenter's problem, the evidence that people need it, the
 2. Write what changed there, from the presenter's side, and replace "Unreleased" with the date.
 3. Commit and push to `main`.
 4. `make test-build` runs every test on the release build, in about 20 minutes, and marks the commit as tested if they pass.
-5. `make all` checks that this commit passed, builds, then asks before it tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
+5. `make all` checks that this commit passed, builds, then asks before it tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached. The release has the website published again, with the version on What's new and the changelog.
 6. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
 
 `make help` lists every step, to run them one at a time.
