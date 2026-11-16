@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: időzítő, nagyítás és előadói jegyzetek – Google Diák™" },
-  "extensionDescription": { "message": "Előadói eszközök a Google Diákhoz." },
+  "extensionDescription": { "message": "Ingyenes előadói eszközök a Google Diák™ alkalmazáshoz: képek közelről, linkek a dián, visszaszámlálás és lebegő jegyzetek." },
   "settingsLabel": { "message": "Slides Companion beállításai" },
 
   "spotlightMenuItem": { "message": "Kép reflektorfénybe állítása" },

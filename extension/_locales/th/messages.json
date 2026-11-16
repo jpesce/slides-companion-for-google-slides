@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: ตัวจับเวลา ซูม และบันทึกของผู้บรรยายสำหรับ Google สไลด์™" },
-  "extensionDescription": { "message": "เครื่องมือสำหรับผู้นำเสนอใน Google สไลด์" },
+  "extensionDescription": { "message": "เครื่องมือฟรีสำหรับผู้นำเสนอใน Google สไลด์™: ดูรูปภาพใกล้ๆ เปิดลิงก์บนสไลด์ นับถอยหลัง และบันทึกแบบลอย" },
   "settingsLabel": { "message": "การตั้งค่า Slides Companion" },
 
   "spotlightMenuItem": { "message": "แสดงรูปภาพในสปอตไลท์" },

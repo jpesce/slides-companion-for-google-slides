@@ -11,6 +11,9 @@ const ROOT = new URL('../', import.meta.url);
 export const INK = '#1F1F1F';
 // Slides' yellow, sampled from its 2026 favicon (ssl.gstatic.com favicon-2026-v2).
 export const SLIDES_YELLOW = '#FFCF03';
+// What the store and GitHub pictures stand on: Google's lightest grey, so Slides yellow shows only
+// on the icon's square, as Apple keeps its blue to a few things.
+export const PAPER = '#F1F3F4';
 
 // A seeded random (Park–Miller), so the fur and the eyes' wobble come out the same every time.
 const rng = (seed) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
@@ -229,12 +232,69 @@ function icon(padded) {
   return `<svg ${SVG} viewBox="${padded ? '-180 -180 1440 1440' : '0 0 1080 1080'}">${glow}<clipPath id="tile"><rect width="1080" height="1080" rx="240"/></clipPath><g clip-path="url(#tile)"><rect width="1080" height="1080" fill="${SLIDES_YELLOW}"/><g transform="${fit}">${body(COMPANION)}</g></g></svg>\n`;
 }
 
+// The store's promo tile and GitHub's social preview: him peeking up from the bottom edge, as on
+// the icon, big enough that he's cut off below his eyes, which look up (at his name, on GitHub).
+// `peek` places him by his fur: its box's left and top at (x, y), and `width` wide.
+const furBox = () => {
+  const n = furPath(BODY)
+    .match(/-?[\d.]+/g)
+    .map(Number);
+  const [xs, ys] = [n.filter((_, i) => i % 2 === 0), n.filter((_, i) => i % 2 === 1)];
+  const [x, y] = [Math.min(...xs), Math.min(...ys)];
+  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+};
+// His fur's height when it's `width` wide, to place him by how much of him shows.
+export const furHeight = (width) => (width * furBox().height) / furBox().width;
+// `at`, a point in the same space as (x, y), is where he looks: each pupil goes as far towards it
+// as his eye allows, keeping a sliver of white around it. Without it, he looks up.
+export function peek(x, y, width, at) {
+  const box = furBox();
+  const k = box.width / width;
+  const eyes = !at
+    ? COMPANION.eyes
+    : COMPANION.eyes.map((e) => {
+        const r = Math.min(e.rx, e.ry) * COMPANION.pupil;
+        const far = [box.x + (at[0] - x) * k - e.x, box.y + (at[1] - y) * k - e.y].map(
+          (d) => d * 1000,
+        );
+        const [ox, oy] = clampPupil(e, r, far, r * 0.35);
+        return { ...e, rest: [ox / e.rx, oy / e.ry] };
+      });
+  return `<svg x="${x}" y="${y}" width="${width}" height="${furHeight(width).toFixed(1)}" viewBox="${box.x} ${box.y} ${box.width} ${box.height}" overflow="visible">${body({ ...COMPANION, eyes })}</svg>`;
+}
+const FONT =
+  '<style>@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,100..900&amp;display=block");text{font-family:"Google Sans Flex";fill:#1F1F1F}</style>';
+
+// The app icon at (x, y), `size` wide, on a soft shadow, as Apple and Google show app icons.
+const appIcon = (x, y, size) => {
+  const k = size / 1080;
+  return `<filter id="lift" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="${(36 * k).toFixed(1)}"/></filter><rect x="${x}" y="${(y + 30 * k).toFixed(1)}" width="${size}" height="${size}" rx="${(240 * k).toFixed(1)}" fill="#000" opacity="0.14" filter="url(#lift)"/>${icon(false).replace('<svg ', `<svg x="${x}" y="${y}" width="${size}" height="${size}" `)}`;
+};
+
+// The Chrome Web Store's small promo tile, 440×280: the icon on light grey, no words, as the store
+// asks, big enough to read at half its size.
+const promoTile = () =>
+  `<svg ${SVG} width="440" height="280" viewBox="0 0 440 280"><rect width="440" height="280" fill="${PAPER}"/>${appIcon(136, 52, 168)}</svg>\n`;
+
+// The store's marquee, 1400×560, for the carousel at the top of its homepage if the extension is
+// picked for it: the icon beside his name and what he does.
+const marquee = () =>
+  `<svg ${SVG} width="1400" height="560" viewBox="0 0 1400 560">${FONT}<rect width="1400" height="560" fill="${PAPER}"/>${appIcon(232, 160, 240)}<text x="536" y="276" font-size="80" font-weight="500" letter-spacing="-0.96">Slides Companion</text><text x="538" y="332" font-size="36" fill="#444746">Free presenter tools for Google Slides™</text></svg>\n`;
+
+// GitHub's social preview, 1280×640, for links to the repository: the icon above his name and the
+// store summary's words.
+const socialPreview = () =>
+  `<svg ${SVG} width="1280" height="640" viewBox="0 0 1280 640">${FONT}<rect width="1280" height="640" fill="${PAPER}"/>${appIcon(540, 116, 200)}<text x="640" y="446" text-anchor="middle" font-size="96" font-weight="500" letter-spacing="-1.15">Slides Companion</text><text x="640" y="512" text-anchor="middle" font-size="42" fill="#444746">Free presenter tools for Google Slides™</text></svg>\n`;
+
 // Every picture, by its file in brand/.
 export const svgs = () => ({
   'icon.svg': icon(false),
   'icon-store.svg': icon(true),
   'companion.svg': `<svg ${SVG} viewBox="${view}">${body(COMPANION)}</svg>\n`,
   'toolbar-companion.svg': `<svg ${SVG} viewBox="${view}">${body(TOOLBAR)}</svg>\n`,
+  'store-promo-tile.svg': promoTile(),
+  'store-marquee.svg': marquee(),
+  'github-social-preview.svg': socialPreview(),
 });
 
 // The PNGs, each from one of the SVGs at a size. Chrome shows 16 in its extensions menu and on our
@@ -249,20 +309,53 @@ export const PNGS = [
   ['brand/companion-1024.png', 'companion.svg', 1024],
 ];
 
-// The toolbar companion for companion.js: his picture, with the classes it moves him by, and where
-// his eyes and base are, in the picture's units.
-export function companionScript() {
-  const eyes = TOOLBAR.eyes.map(({ x, y, rx, ry, tilt }) => ({
+// The store's and GitHub's pictures, each from one of the SVGs at its width and height.
+export const PICTURES = [
+  ['brand/store-promo-tile.png', 'store-promo-tile.svg', 440, 280],
+  ['brand/store-marquee.png', 'store-marquee.svg', 1400, 560],
+  ['brand/github-social-preview.png', 'github-social-preview.svg', 1280, 640],
+];
+
+// Where a companion's eyes are, and their pupils' radius, in the picture's units, for
+// companion-motion.js to move them by.
+const eyesOf = ({ eyes, pupil }) =>
+  eyes.map(({ x, y, rx, ry, tilt }) => ({
     x: +x.toFixed(1),
     y: +y.toFixed(1),
     rx: +rx.toFixed(1),
     ry: +ry.toFixed(1),
     tilt,
-    r: +(Math.min(rx, ry) * TOOLBAR.pupil).toFixed(1),
+    r: +(Math.min(rx, ry) * pupil).toFixed(1),
   }));
+// The middle of the bun's flattened bottom, which he sits on and squashes towards.
+const BASE = { x: BODY.cx, y: +(BODY.cy + BODY.shape.h * BODY.shape.bottom * BODY.R).toFixed(1) };
+
+// The companion as the website shows him (scripts/build-site.mjs), peeking over an edge: his
+// picture framed to his fur, as `peek` frames him, with the classes companion-motion.js moves him
+// by, and where his eyes and base are. His pupils keep a sliver of white, as `peek`'s do.
+export function peekingDrawing() {
+  const box = furBox();
+  const svg = `<svg ${SVG} viewBox="${box.x} ${box.y} ${box.width} ${box.height}" overflow="visible" aria-hidden="true">${body(COMPANION, 'slides-companion-')}</svg>`;
+  const margin = +(
+    Math.min(...COMPANION.eyes.map((e) => Math.min(e.rx, e.ry))) *
+    COMPANION.pupil *
+    0.35
+  ).toFixed(1);
+  return {
+    svg,
+    view: { x: box.x, y: box.y, size: box.width },
+    eyes: eyesOf(COMPANION),
+    base: BASE,
+    margin,
+  };
+}
+
+// The toolbar companion for companion.js: his picture, with the classes it moves him by, and where
+// his eyes and base are, in the picture's units.
+export function companionScript() {
+  const eyes = eyesOf(TOOLBAR);
   const svg = `<svg ${SVG} viewBox="${view}" aria-hidden="true">${body(TOOLBAR, 'slides-companion-')}</svg>`;
-  // The middle of the bun's flattened bottom, which he sits on and squashes towards.
-  const base = { x: BODY.cx, y: +(BODY.cy + BODY.shape.h * BODY.shape.bottom * BODY.R).toFixed(1) };
+  const base = BASE;
   return `// Made by scripts/build-brand.mjs (npm run brand): change that, not this.
 // The toolbar companion (companion.js): his picture, and where his eyes and base are in its units.
 globalThis.slidesCompanion ??= {};
@@ -294,9 +387,15 @@ async function build() {
     );
     await page.screenshot({ path: fileURLToPath(new URL(file, ROOT)), omitBackground: true });
   }
+  for (const [file, svg, width, height] of PICTURES) {
+    await page.setViewportSize({ width, height });
+    await page.goto(new URL(`brand/${svg}`, ROOT).href);
+    await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({ path: fileURLToPath(new URL(file, ROOT)) });
+  }
   await browser.close();
   console.log(
-    `Wrote ${Object.keys(files).length} SVGs and ${PNGS.length} PNGs, and extension/companion-drawing.js`,
+    `Wrote ${Object.keys(files).length} SVGs and ${PNGS.length + PICTURES.length} PNGs, and extension/companion-drawing.js`,
   );
 }
 

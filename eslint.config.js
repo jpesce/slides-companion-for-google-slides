@@ -34,6 +34,11 @@ export default [
       globals: { ...globals.browser, ...globals.webextensions },
     },
   },
+  // The website's own script, a classic one too, beside the extension's companion-motion.js.
+  {
+    files: ['site/**/*.js'],
+    languageOptions: { sourceType: 'script', globals: globals.browser },
+  },
   {
     files: ['extension/background.js', 'extension/dev-reload.js'],
     languageOptions: { globals: globals.serviceworker },

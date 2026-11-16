@@ -1,0 +1,409 @@
+// How the companion moves, wherever he's drawn: pinned to Slides' side toolbar (companion.js), and
+// on the project's website (site/). Each place has its own drawing of him, from
+// scripts/build-brand.mjs, with classes this script finds his parts by.
+{
+  // ---- How he moves ----
+  // His pupils follow the mouse; he blinks now and then, and when his gaze swings a long way (a
+  // blink hides a change of gaze, as animators time one); pressed, he gives under the finger and
+  // squeezes his eyes into happy arcs, and let go, he springs back past his shape and wobbles to
+  // rest, his face settling a beat after his body. All of it is springs and timed blinks, stepped
+  // once a frame and only while something is still moving. A spring carries on from wherever it
+  // is, at the speed it's going, so a press that interrupts a bounce, or a glance in the middle of
+  // a blink, flows on from it instead of jumping. Nothing moves but his pupils when the system
+  // asks for reduced motion, and those jump straight to where they look.
+
+  // A damped spring: `omega` is how quick it is (radians a second), `zeta` how much it overshoots
+  // (1 doesn't, lower wobbles more).
+  class Spring {
+    constructor([omega, zeta], precision = 0.001) {
+      this.x = 0;
+      this.v = 0;
+      this.target = 0;
+      this.precision = precision;
+      this.tune([omega, zeta]);
+    }
+    tune([omega, zeta]) {
+      this.omega = omega;
+      this.zeta = zeta;
+    }
+    step(dt) {
+      const pull =
+        -(this.omega ** 2) * (this.x - this.target) - 2 * this.zeta * this.omega * this.v;
+      this.v += pull * dt;
+      this.x += this.v * dt;
+    }
+    snap() {
+      this.x = this.target;
+      this.v = 0;
+    }
+    get resting() {
+      return (
+        Math.abs(this.x - this.target) < this.precision &&
+        Math.abs(this.v) < this.precision * this.omega
+      );
+    }
+  }
+
+  const SPRINGS = {
+    // A glance: quick, landing with the smallest overshoot.
+    gaze: [40, 0.78],
+    // Pressed: he gives at once, without bouncing.
+    press: [46, 0.92],
+    // Let go: back past his shape and a wobble or two, settled in about half a second.
+    release: [23, 0.32],
+    // His face rides inside his body a beat late, which reads as soft rather than rigid.
+    face: [16, 0.42],
+    // Pointed at, his pupils widen a little, as when something interests him.
+    interest: [14, 1],
+  };
+  // How far he squashes when pressed (and, by the overshoot, stretches when let go): shorter and
+  // wider in about the same area, from his base.
+  const SQUASH = { y: 0.13, x: 0.09 };
+  // A blink, timed as on an animator's chart: the upper lids shut in about five frames, stay shut
+  // for one, and open slower, most of the way at once and then easing (a long half-open tail reads
+  // as sleepy). The lower lids rise a little to meet them a frame behind. One blink in eight is a
+  // double, the second starting before the eyes are fully open again.
+  const BLINK = { close: 80, hold: 17, open: 180, lowerLag: 17, double: 0.125 };
+  const BLINK_EVERY = [2600, 7200];
+  // The happy arc his eyes squeeze into, in shares of the eye: where its middle sits below the
+  // eye's centre, how far its ends bend down, its half thickness, and its half length; and where
+  // the pupils sink to, out of its way. Thin, so the eye reads as shut: thicker, at the toolbar's
+  // 25 pixels it looked like an eye half open, looking up. Thinner, it breaks up on a screen
+  // without high density. `hidden` is how squeezed the eyes are when the pupils are hidden
+  // outright: by then the rising lower lid has covered them wherever he looks, so they can never
+  // show in the arc.
+  const SMILE = { middle: 0.04, bend: 0.55, half: 0.14, width: 0.86, sink: 1.0, hidden: 0.6 };
+  // A glance that swings this far (radians), within this long, brings a blink, but not more often
+  // than every `rest` milliseconds.
+  const GLANCE = { angle: 1.75, within: 400, chance: 0.7, rest: 1400 };
+
+  // How shut a blink's lids are, `t` milliseconds into it: 0 open, 1 shut.
+  function shut(t) {
+    const { close, hold, open } = BLINK;
+    if (t < 0 || t > close + hold + open) return 0;
+    if (t < close) return (t / close) ** 2 * (3 - (2 * t) / close);
+    if (t < close + hold) return 1;
+    return (1 - (t - close - hold) / open) ** 3;
+  }
+
+  // The opening an eye's lids leave, as a closed outline around the eye's centre, in the picture's
+  // units. Each lid's edge is a curve, given by its middle and how far its corners dip, both as
+  // shares of the eye's height: an upper lid's edge arches over the eyeball, a rising lower lid's
+  // arches up into a smile. The lids move up and down the face, not along each eye's tilt: tilted,
+  // the two shutting eyes made a worried face.
+  //  - Open, both edges sit just outside the eye's hand-drawn wobble.
+  //  - Blinking (`blink` the upper lid, `rise` the lower one), the upper edge comes down and takes
+  //    the lower one's curve as it lands, so they meet all along.
+  //  - Squeezed (`squeeze`, when he's pressed), what's left of each eye is an arc with round
+  //    ends, the ^ ^ of a happy face, low in the eye as if his cheeks pushed it up.
+  //    The lower lid leads, rising into the smile, and the upper one follows: the other way
+  //    round, a flat upper lid coming down first, he looks cross for a frame or two.
+  function aperture(eye, blink, rise, squeeze) {
+    const meet = 0.2;
+    const lowerMiddle = 1.25 + (meet - 1.25) * 0.3 * rise;
+    const lowerCurve = -0.15;
+    const upperMiddle = -1.3 + (lowerMiddle + 1.3) * blink;
+    const upperCurve = 0.32 + (lowerCurve - 0.32) * blink ** 2;
+    const lead = 1 - (1 - squeeze) ** 2;
+    const follow = squeeze ** 1.3;
+    const narrow = squeeze ** 2;
+    const lerp = (from, to, t) => from + (to - from) * t;
+    // The arc's half length, in the picture's units, and the share of it its round ends take.
+    const length = eye.rx * SMILE.width;
+    const end = Math.min(1, (SMILE.half * eye.ry) / length);
+    const above = [];
+    const below = [];
+    // Spaced closer towards the ends, where the arc's round ends need the points.
+    const steps = 24;
+    for (let i = 0; i <= steps; i++) {
+      const u = -Math.cos((Math.PI * i) / steps);
+      const x = lerp(eye.rx * 1.25, length, narrow) * u;
+      const middle = (SMILE.middle + SMILE.bend * u * u) * eye.ry;
+      const along = Math.max(0, (Math.abs(u) - (1 - end)) / end);
+      const half = SMILE.half * eye.ry * Math.sqrt(Math.max(0, 1 - along * along));
+      const yUpper = lerp((upperMiddle + upperCurve * u * u) * eye.ry, middle - half, follow);
+      const yLower = lerp((lowerMiddle + lowerCurve * u * u) * eye.ry, middle + half, lead);
+      above.push(`${x.toFixed(1)} ${yUpper.toFixed(1)}`);
+      below.unshift(`${x.toFixed(1)} ${Math.max(yUpper, yLower).toFixed(1)}`);
+    }
+    return `M${above.join(' L')} L${below.join(' L')} Z`;
+  }
+
+  // Where a pupil of radius `r` sits, in the picture's units, when the mouse is (vx, vy) from its
+  // eye's centre: as far that way as keeps a rim of white around it (`margin`), measured in
+  // the eye's own tilted frame. Less far when the mouse is close, so he looks at it rather than past
+  // it, and a little inward (`side`), which reads as attention.
+  function pupilOffset(eye, r, margin, vx, vy, side) {
+    const distance = Math.hypot(vx, vy) || 1;
+    const reach = Math.min(1, distance / (eye.rx * 2.5));
+    const toward = [(vx / distance) * reach + side * 0.28, (vy / distance) * reach];
+    return keepInside(eye, r, margin, toward, true);
+  }
+
+  // A pupil of radius `r` moved (x, y) from its eye's centre, kept inside the room it has with a rim
+  // of white `margin` wide, in the eye's tilted frame. (x, y) is in the picture's units, or,
+  // `asShare`, in shares of that room.
+  function keepInside(eye, r, margin, [x, y], asShare) {
+    const tilt = (eye.tilt * Math.PI) / 180;
+    const [cos, sin] = [Math.cos(tilt), Math.sin(tilt)];
+    // 0.93 allows for the eye's hand-drawn wobble denting its oval inward.
+    const roomX = Math.max(0.01, eye.rx * 0.93 - r - margin);
+    const roomY = Math.max(0.01, eye.ry * 0.93 - r - margin);
+    let lx = x * cos + y * sin;
+    let ly = -x * sin + y * cos;
+    if (!asShare) [lx, ly] = [lx / roomX, ly / roomY];
+    const length = Math.hypot(lx, ly);
+    if (length > 1) [lx, ly] = [lx / length, ly / length];
+    [lx, ly] = [lx * roomX, ly * roomY];
+    return [lx * cos - ly * sin, lx * sin + ly * cos];
+  }
+
+  // Makes the companion drawn inside `host` move, as `DRAWING` says his eyes and base are (made by
+  // scripts/build-brand.mjs). Each gets lids of his own, so two on one page don't share them.
+  let made = 0;
+  function animate(host, DRAWING) {
+    const n = made++;
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const svg = host.querySelector('svg');
+    const bodyGroup = svg.querySelector('.slides-companion-body');
+    const faceGroup = svg.querySelector('.slides-companion-face');
+    const eyeGroups = [...svg.querySelectorAll('.slides-companion-eye')];
+    const pupils = [...svg.querySelectorAll('.slides-companion-pupil')];
+    const { x: viewX, y: viewY, size } = DRAWING.view;
+    const { base } = DRAWING;
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Each eye's lids: a clip path the shape of the opening they leave.
+    const defs = document.createElementNS(SVG_NS, 'defs');
+    const lids = DRAWING.eyes.map((eye, i) => {
+      const clip = document.createElementNS(SVG_NS, 'clipPath');
+      clip.id = `slides-companion-lids-${n}-${i}`;
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('transform', `translate(${eye.x} ${eye.y})`);
+      // Open from the start: a clip path with no outline hides the whole eye, and the first frame
+      // draws nothing while the toolbar has no size yet.
+      path.setAttribute('d', aperture(eye, 0, 0, 0));
+      clip.append(path);
+      defs.append(clip);
+      eyeGroups[i]
+        .querySelector('.slides-companion-lids')
+        .setAttribute('clip-path', `url(#${clip.id})`);
+      return path;
+    });
+    svg.prepend(defs);
+
+    const gaze = DRAWING.eyes.map(() => [
+      new Spring(SPRINGS.gaze, 0.05),
+      new Spring(SPRINGS.gaze, 0.05),
+    ]);
+    const squash = new Spring(SPRINGS.press);
+    const face = new Spring(SPRINGS.face);
+    const interest = new Spring(SPRINGS.interest);
+    const springs = [...gaze.flat(), squash, face, interest];
+    let mouse = null;
+    let moved = false;
+    let blinks = [];
+    let pressedAt = 0;
+    let releaseTimer = 0;
+    let lastBlink = -Infinity;
+
+    // Lids and dips for the blinks under way at `now`.
+    function blinking(now) {
+      blinks = blinks.filter(
+        (start) => now - start <= BLINK.close + BLINK.hold + BLINK.open + BLINK.lowerLag,
+      );
+      return {
+        upper: Math.max(0, ...blinks.map((start) => shut(now - start))),
+        lower: Math.max(0, ...blinks.map((start) => shut(now - start - BLINK.lowerLag))),
+      };
+    }
+
+    function blink(now = performance.now()) {
+      if (still.matches || pressedAt || now - lastBlink < 200) return;
+      lastBlink = now;
+      blinks.push(now);
+      if (Math.random() < BLINK.double)
+        blinks.push(now + BLINK.close + BLINK.hold + BLINK.open * 0.45);
+      wake();
+    }
+
+    (function blinkNow() {
+      const [least, most] = BLINK_EVERY;
+      setTimeout(
+        () => {
+          if (!document.hidden && host.isConnected) blink();
+          if (host.isConnected) blinkNow();
+        },
+        least + Math.random() * (most - least),
+      );
+    })();
+
+    let frame = 0;
+    let last = 0;
+    function wake() {
+      if (frame) return;
+      last = performance.now();
+      frame = requestAnimationFrame(tick);
+    }
+
+    function tick() {
+      frame = 0;
+      const now = performance.now();
+      const rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      const scale = rect.width / size;
+      const radius = (eye) => eye.r * (1 + 0.1 * interest.x);
+
+      // Where each pupil wants to be.
+      if (mouse) {
+        if (moved) noticeGlance(now, rect);
+        moved = false;
+        DRAWING.eyes.forEach((eye, i) => {
+          const vx = (mouse.x - (rect.left + (eye.x - viewX) * scale)) / scale;
+          const vy = (mouse.y - (rect.top + (eye.y - viewY) * scale)) / scale;
+          const [dx, dy] = pupilOffset(eye, radius(eye), DRAWING.margin, vx, vy, i === 0 ? 1 : -1);
+          [gaze[i][0].target, gaze[i][1].target] = [eye.x + dx, eye.y + dy];
+        });
+      }
+
+      // Small steps keep the stiffest springs steady whatever the frame rate.
+      if (still.matches) {
+        springs.forEach((spring) => spring.snap());
+        blinks = [];
+      } else {
+        const dt = Math.min(0.064, (now - last) / 1000);
+        const steps = Math.ceil(dt / (1 / 240));
+        for (let i = 0; i < steps; i++) {
+          face.target = squash.x;
+          springs.forEach((spring) => spring.step(dt / steps));
+        }
+      }
+      last = now;
+
+      const { upper, lower } = blinking(now);
+      const s = squash.x;
+      const squeeze = Math.min(1, Math.max(0, s));
+      const stretch = Math.max(0, -s);
+      // The body squashes from its base, and dips a touch as he blinks.
+      const sx = 1 + SQUASH.x * s;
+      const sy = 1 - SQUASH.y * s - 0.012 * upper;
+      bodyGroup.setAttribute(
+        'transform',
+        `translate(${base.x} ${base.y}) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-base.x} ${-base.y})`,
+      );
+      faceGroup.setAttribute(
+        'transform',
+        `translate(0 ${((face.x - s) * 26 + 6 * upper).toFixed(2)})`,
+      );
+
+      DRAWING.eyes.forEach((eye, i) => {
+        // Stretched, his eyes widen a little, the way a face opens up in delight.
+        const widen = 1 + 0.14 * stretch;
+        eyeGroups[i].setAttribute(
+          'transform',
+          `translate(${eye.x} ${eye.y}) scale(${widen.toFixed(4)}) translate(${-eye.x} ${-eye.y})`,
+        );
+        lids[i].setAttribute('d', aperture(eye, upper, lower, squeeze));
+        // Pupils dip with a blink, as eyes roll down when the lids close.
+        const r = radius(eye);
+        const at = [gaze[i][0].x - eye.x, gaze[i][1].x - eye.y + 0.25 * eye.ry * upper];
+        const [dx, dy] = keepInside(eye, r, DRAWING.margin, at, false);
+        // Squeezing, they sink below the arc as the lower lid rises over them, so it swallows
+        // them rather than leaving a sliver of pupil in the arc.
+        const sink = 1 - (1 - squeeze) ** 2;
+        const px = dx * (1 - sink);
+        const py = dy + (SMILE.sink * eye.ry - dy) * sink;
+        pupils[i].setAttribute('cx', (eye.x + px).toFixed(1));
+        pupils[i].setAttribute('cy', (eye.y + py).toFixed(1));
+        pupils[i].setAttribute('r', r.toFixed(1));
+        pupils[i].setAttribute('visibility', squeeze > SMILE.hidden ? 'hidden' : 'visible');
+      });
+
+      if (!still.matches && (blinks.length || springs.some((spring) => !spring.resting))) wake();
+    }
+
+    // The pupils start where they're drawn, at rest.
+    DRAWING.eyes.forEach((eye, i) => {
+      gaze[i][0].x = gaze[i][0].target = Number(pupils[i].getAttribute('cx'));
+      gaze[i][1].x = gaze[i][1].target = Number(pupils[i].getAttribute('cy'));
+    });
+    tick();
+
+    // A glance that swings far, measured from his face, brings a blink.
+    let glance = null;
+    function noticeGlance(now, rect) {
+      const angle = Math.atan2(
+        mouse.y - (rect.top + rect.height / 2),
+        mouse.x - (rect.left + rect.width / 2),
+      );
+      if (!glance || now - glance.at > GLANCE.within) {
+        glance = { angle, at: now };
+        return;
+      }
+      const turn = Math.abs(
+        Math.atan2(Math.sin(angle - glance.angle), Math.cos(angle - glance.angle)),
+      );
+      if (turn < GLANCE.angle) return;
+      glance = { angle, at: now };
+      if (now - lastBlink > GLANCE.rest && Math.random() < GLANCE.chance) blink(now);
+    }
+
+    // The document's listeners go with him: a copy of this script left behind by an extension
+    // reload or update would otherwise keep waking for a companion that's no longer on the page.
+    const listening = new AbortController();
+    const { signal } = listening;
+    document.addEventListener(
+      'mousemove',
+      (event) => {
+        if (!host.isConnected) return listening.abort();
+        mouse = { x: event.clientX, y: event.clientY };
+        moved = true;
+        wake();
+      },
+      { passive: true, signal },
+    );
+
+    function press() {
+      if (still.matches) return;
+      clearTimeout(releaseTimer);
+      pressedAt = performance.now();
+      blinks = [];
+      squash.tune(SPRINGS.press);
+      squash.target = 1;
+      wake();
+    }
+    // A quick click still gets a full squash: the release waits until he's had time to give.
+    function release() {
+      if (!pressedAt) return;
+      const wait = Math.max(0, pressedAt + 90 - performance.now());
+      pressedAt = 0;
+      releaseTimer = setTimeout(() => {
+        squash.tune(SPRINGS.release);
+        squash.target = 0;
+        wake();
+      }, wait);
+    }
+    host.addEventListener('pointerdown', (event) => {
+      if (event.button === 0) press();
+    });
+    // In the capture phase, so a handler in Slides that stops the event can't leave him squashed.
+    document.addEventListener('pointerup', release, { capture: true, signal });
+    document.addEventListener('pointercancel', release, { capture: true, signal });
+    host.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      press();
+      release();
+    });
+    host.addEventListener('pointerenter', () => {
+      interest.target = 1;
+      wake();
+    });
+    host.addEventListener('pointerleave', () => {
+      interest.target = 0;
+      wake();
+    });
+  }
+
+  globalThis.slidesCompanion ??= {};
+  globalThis.slidesCompanion.animateCompanion = animate;
+}

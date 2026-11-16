@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: таймер, масштаб, заметки докладчика – Google Презентации™" },
-  "extensionDescription": { "message": "Инструменты докладчика для Google Презентаций." },
+  "extensionDescription": { "message": "Бесплатные инструменты докладчика для Google Презентаций™: крупные картинки, ссылки на слайде, обратный отсчет и плавающие заметки." },
   "settingsLabel": { "message": "Настройки Slides Companion" },
 
   "spotlightMenuItem": { "message": "Показать крупным планом" },

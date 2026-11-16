@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: timer, zoom at speaker notes para sa Google Slides™" },
-  "extensionDescription": { "message": "Mga tool sa pag-present para sa Google Slides." },
+  "extensionDescription": { "message": "Libreng mga tool sa pag-present para sa Google Slides™: larawan nang malapitan, mga link sa slide mo, countdown at floating notes." },
   "settingsLabel": { "message": "Mga setting ng Slides Companion" },
 
   "spotlightMenuItem": { "message": "I-spotlight ang larawan" },

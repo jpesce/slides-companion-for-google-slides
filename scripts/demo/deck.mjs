@@ -229,12 +229,14 @@ export const NOTES = {
     'Circle the best month with the pen. End the slideshow, start it again: the circle is still there.',
   [SLIDES.timer]:
     'Fifteen minutes in all. The bar fills as time goes by, and the timer turns orange before the end. Click + for one more minute.',
+  // Short lines, so the floating notes window shows each on one line even a step bigger, as the
+  // store's screenshot shows them, with no word left alone.
   [SLIDES.notes]: [
-    'Look at the room, not at the screen.',
-    'Three things to say here:',
-    '1. The notes follow the slideshow.',
-    '2. Zoom them so you can read from a distance.',
-    '3. Put them on your laptop while the slides are on the projector.',
+    'Look up at the room.',
+    'Three things to say:',
+    '1. They keep up.',
+    '2. Zoom in to read.',
+    '3. Only you see them.',
   ].join('\n'),
   [SLIDES.liveEdits]:
     'Someone changes the number in the editor on another computer, and it changes here within seconds.',

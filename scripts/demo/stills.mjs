@@ -64,6 +64,14 @@ const box = async (locator) => {
 };
 const centreOf = (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 
+// Each part goes on from where the one before left the editor; a part run on its own starts from a
+// blank page, so it opens the deck first.
+async function toSlideInEditor(page, slide) {
+  if (page.url().startsWith('about:')) return openEditor(page, slide);
+  await endSlideshow(page);
+  await goToSlideInEditor(page, slide);
+}
+
 async function shoot(page, name, clip) {
   const file = path.join(UI, `${name}.png`);
   await page.screenshot({ path: file, clip, animations: 'disabled', caret: 'initial' });
@@ -100,6 +108,10 @@ async function spotlight(page, ui) {
 // article itself, for the edit to scroll: the page taller than the window, and Wikipedia's sticky
 // header, which shows only once the title has scrolled away.
 async function links(page, context, ui) {
+  if (page.url().startsWith('about:')) {
+    await openEditor(page, SLIDES.spotlight);
+    await startSlideshow(page, `${SLIDES.spotlight}_photo1`);
+  }
   await nextSlide(page, `${SLIDES.links}_title`);
   // Slides draws a text link as an SVG <a> over the words; its box is where to click.
   const link = await show(page)
@@ -175,8 +187,7 @@ export async function article(context, links) {
 // Presenter view: as it opens, the timer button hovered, its menu, the choice hovered, and counting
 // down. The time ticks, so each second the edit shows is captured on its own, where the time is.
 async function timer(page, context, ui) {
-  await endSlideshow(page);
-  await goToSlideInEditor(page, SLIDES.timer);
+  await toSlideInEditor(page, SLIDES.timer);
   await sleep(800);
   await page.locator('#punch-start-presentation-right').click();
   const opened = context.waitForEvent('page');
@@ -227,14 +238,45 @@ async function timer(page, context, ui) {
   await sleep(600);
   await shoot(presenter, 'timer-15');
   await ticks('countdown', ['00:15:00', '00:14:59', '00:14:58', '00:14:57']);
+  await headsUp(presenter);
   await presenter.close();
+}
+
+// The countdown near its end, as the store's screenshot shows it: 13 minutes into the 15, orange,
+// the bar nearly full. Slides' own time is set to what it would read then, and the countdown works
+// out the rest; it counts from Slides' time when it was chosen, found from what both show now. Slides
+// ticks its time every second, which starts the countdown over, so it tries again until a still has
+// the time it means to.
+async function headsUp(presenter) {
+  const seconds = (text) => text.split(':').reduce((sum, n) => sum * 60 + Number(n), 0);
+  const clock = (s) =>
+    [s / 3600, (s / 60) % 60, s % 60].map((n) => String(Math.floor(n)).padStart(2, '0')).join(':');
+  const [FROM, GONE] = [15 * 60, 13 * 60 + 6];
+  const slides = presenter.locator(
+    '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)',
+  );
+  const countdown = presenter.locator('.slides-companion-countdown');
+  await presenter.mouse.move(700, 600);
+  await sleep(300);
+  for (let tries = 0; tries < 10; tries++) {
+    const shows = async () => [seconds(await slides.textContent()), await countdown.textContent()];
+    const [now, left] = await shows();
+    const start = now - (FROM - seconds(left));
+    await slides.evaluate((el, text) => (el.textContent = text), clock(start + GONE));
+    await shoot(presenter, 'timer-heads-up');
+    const [, shown] = await shows();
+    const orange = await countdown.evaluate((el) =>
+      el.classList.contains('slides-companion-countdown-warning'),
+    );
+    if (shown === clock(FROM - GONE) && orange) return;
+  }
+  throw new Error('The countdown never showed its heads-up');
 }
 
 // Floating notes beside the slideshow: as they open, then on the next slide. The video leaves out
 // their zoom buttons, to keep the scene on what the notes are.
 async function floatingNotes(page, context, ui) {
-  await endSlideshow(page);
-  await goToSlideInEditor(page, SLIDES.notes);
+  await toSlideInEditor(page, SLIDES.notes);
   await sleep(600);
   await startSlideshow(page, `${SLIDES.notes}_quote`);
   const opened = context.waitForEvent('page');
@@ -245,6 +287,19 @@ async function floatingNotes(page, context, ui) {
   await sleep(1200);
   ui.notes = { size: NOTES_WINDOW };
   await shoot(notes, 'notes');
+  // A step bigger, for the store's screenshot: they read at its half size, and fill more of the
+  // window. One step, as the demo's notes are already six in, and the eighth greys out the button.
+  // The zoom is kept for the next time the window opens, so it goes back after.
+  const zoom = async (step) => {
+    await notes.locator(`[data-zoom="${step}"]`).click();
+    // Off the button, and out of focus, so it shows at rest.
+    await notes.mouse.move(240, 400);
+    await notes.evaluate(() => document.activeElement?.blur());
+    await sleep(400);
+  };
+  await zoom(1);
+  await shoot(notes, 'notes-bigger');
+  await zoom(-1);
   await page.keyboard.press('ArrowRight');
   await notes
     .getByText(/Slide 8\b/)

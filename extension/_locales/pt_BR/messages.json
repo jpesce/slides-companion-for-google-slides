@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: timer, zoom e anotações do apresentador – Google Slides™" },
-  "extensionDescription": { "message": "Ferramentas de apresentação para o Google Slides." },
+  "extensionDescription": { "message": "Ferramentas grátis para apresentar no Google Slides™: imagens de perto, links no slide, contagem regressiva e anotações flutuantes." },
   "settingsLabel": { "message": "Configurações do Slides Companion" },
 
   "spotlightMenuItem": { "message": "Destacar imagem" },

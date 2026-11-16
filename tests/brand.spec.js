@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
-import { svgs, companionScript, PNGS } from '../scripts/build-brand.mjs';
+import { svgs, companionScript, PNGS, PICTURES } from '../scripts/build-brand.mjs';
 
 const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url));
 
@@ -29,5 +29,18 @@ test(
       expect(size(read(`extension/${file}`)), file).toEqual([Number(px), Number(px)]);
     }
     for (const [file, , px] of PNGS) expect(size(read(file)), file).toEqual([px, px]);
+  },
+);
+
+// The store takes the promo tile at exactly 440×280, and GitHub asks for its social preview under
+// 1 MB.
+test(
+  'the store and GitHub pictures are PNGs of their size, made by npm run brand',
+  { tag: '@offline' },
+  () => {
+    for (const [file, , width, height] of PICTURES) {
+      expect(size(read(file)), file).toEqual([width, height]);
+      expect(read(file).length, file).toBeLessThan(1024 * 1024);
+    }
   },
 );

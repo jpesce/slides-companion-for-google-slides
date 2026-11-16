@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: timer, zoom e note del relatore per Presentazioni Google™" },
-  "extensionDescription": { "message": "Strumenti per chi presenta con Presentazioni Google." },
+  "extensionDescription": { "message": "Strumenti gratis per presentare con Presentazioni Google™: immagini grandi, link sulla slide, conto alla rovescia, note fluttuanti." },
   "settingsLabel": { "message": "Impostazioni di Slides Companion" },
 
   "spotlightMenuItem": { "message": "Evidenzia immagine" },
