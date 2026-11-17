@@ -18,15 +18,33 @@
   const tell = (message) =>
     parent.postMessage({ source: 'slides-companion-all-sites', ...message }, DIALOG_ORIGIN);
 
+  // What the dialog needs: whether the notice shows, which makes its button a Tab stop, and its
+  // height. Whether it shows is told as soon as Chrome answers, not left to the height: the frame
+  // is on a page of the dialog that's hidden until its feature is chosen, and isn't laid out until
+  // then, so its height comes a few frames after the page shows, and a Tab pressed in between went
+  // past the button.
+  const report = () =>
+    tell({
+      type: 'notice',
+      shown: !banner.hidden,
+      height: Math.ceil(document.body.getBoundingClientRect().height),
+    });
+
   const showIfMissing = () =>
-    chrome.permissions.contains(ALL_SITES).then((has) => (banner.hidden = has));
+    chrome.permissions.contains(ALL_SITES).then((has) => {
+      banner.hidden = has;
+      report();
+    });
   showIfMissing();
   chrome.permissions.onAdded.addListener(showIfMissing);
   chrome.permissions.onRemoved.addListener(showIfMissing);
 
   allow.addEventListener('click', async () => {
     try {
-      if (await chrome.permissions.request(ALL_SITES)) banner.hidden = true;
+      if (await chrome.permissions.request(ALL_SITES)) {
+        banner.hidden = true;
+        report();
+      }
     } catch {}
   });
 
@@ -51,7 +69,5 @@
   );
 
   // The frame's height: the notice's, or none once it's gone.
-  new ResizeObserver(() =>
-    tell({ type: 'height', height: Math.ceil(document.body.getBoundingClientRect().height) }),
-  ).observe(document.body);
+  new ResizeObserver(report).observe(document.body);
 }

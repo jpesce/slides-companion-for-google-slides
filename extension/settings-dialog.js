@@ -300,6 +300,11 @@
     root = null;
     closing.classList.remove('slides-companion-dialog-open');
     closing.classList.add('slides-companion-dialog-closing');
+    // Fading out, it's already gone for the keys and screen readers too, as it is for the pointer
+    // (settings-dialog.css): Settings opened again during the fade is then the only dialog, rather
+    // than a second one with the same ids.
+    closing.inert = true;
+    closing.setAttribute('aria-hidden', 'true');
     globalThis.slidesCompanion.ui.afterExitFade(() => closing.remove());
     // The companion may be gone, hidden by these very settings.
     if (returnFocusTo?.isConnected) returnFocusTo.focus();
@@ -371,12 +376,13 @@
       event.data?.source !== ALL_SITES_SOURCE
     )
       return;
-    if (event.data.type === 'height') {
+    if (event.data.type === 'notice') {
       // Gone while it had the keys (its button chosen with Enter): they go to what takes its place.
       const held = document.activeElement === frame ? controlStops().indexOf(frame) : -1;
       frame.style.height = `${event.data.height}px`;
       frame.classList.toggle('slides-companion-dialog-frame-empty', !event.data.height);
-      if (!event.data.height && held > 0) controlStops()[held]?.focus();
+      frame.classList.toggle('slides-companion-dialog-frame-shown', event.data.shown);
+      if (!event.data.shown && held > 0) controlStops()[held]?.focus();
     }
     if (event.data.type !== 'key') return;
     if (event.data.key === 'Escape') closeDialog();
@@ -384,12 +390,12 @@
   }
 
   // One Tab stop per control, in order: the chosen feature in the list, then on its page each
-  // checkbox, the framed notice's button while it shows, and each radio group (its checked option, or
-  // its first).
+  // checkbox, the framed notice's button while it shows (even before the frame has its height), and
+  // each radio group (its checked option, or its first).
   function controlStops() {
     const page = root.querySelector('.slides-companion-settings-page:not([hidden])');
     const controls = page.querySelectorAll(
-      ':scope > label input, .slides-companion-dialog-frame:not(.slides-companion-dialog-frame-empty), fieldset',
+      ':scope > label input, .slides-companion-dialog-frame-shown, fieldset',
     );
     return [
       root.querySelector('[role="tab"][aria-selected="true"]'),
