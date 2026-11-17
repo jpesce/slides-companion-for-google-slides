@@ -364,9 +364,12 @@
   // Cancelling it would also cancel the mouse events the drag runs on, so it's only kept from Slides.
   function onPointerDown(event) {
     if (event.button !== 0) return;
-    // Ink keeps the zoom it starts at, so the zoom gets there first.
-    if (penOn()) jumpTo(target);
-    else if (startPress(event)) event.stopImmediatePropagation();
+    // Every press decides afresh, the pen's too: a touch or stylus stroke has no mousedown to drop
+    // a press left over from before the pen came on, and onRelease would otherwise keep the
+    // stroke's pointerup from Slides and from ink.js. Ink keeps the zoom it starts at, so the zoom
+    // gets there first.
+    if (startPress(event)) event.stopImmediatePropagation();
+    else if (penOn()) jumpTo(target);
   }
 
   function onMouseDown(event) {

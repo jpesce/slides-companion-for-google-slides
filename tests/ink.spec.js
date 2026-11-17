@@ -152,6 +152,39 @@ test.describe('kept from the start', () => {
     expect(kept[2].thickness).toBe(drawn[1].thickness);
   });
 
+  // A clicker pressed the moment the pen lifts: nothing comes between the stroke's end and the key,
+  // which is sent from the stroke's pointerup itself, once Slides has had it.
+  test('a stroke ended just as the slide changes is kept, on the slide it was drawn on', async ({
+    context,
+  }) => {
+    const { page, show } = await startShow(context);
+    await page.keyboard.press('Shift+L');
+    await page.mouse.move(400, 300);
+    await page.mouse.down();
+    await page.mouse.move(600, 420, { steps: 8 });
+    await show.locator('html').evaluate(() =>
+      window.addEventListener(
+        'pointerup',
+        () => {
+          for (const type of ['keydown', 'keyup'])
+            document.activeElement.dispatchEvent(
+              new KeyboardEvent(type, {
+                key: 'ArrowLeft',
+                code: 'ArrowLeft',
+                keyCode: 37,
+                which: 37,
+                bubbles: true,
+              }),
+            );
+        },
+        { once: true },
+      ),
+    );
+    await page.mouse.up();
+    await expect.poll(() => slideNumber(show)).toBe(2);
+    await expect.poll(() => saved(context)).toBe(1);
+  });
+
   test('ink drawn while zoomed in is kept where it was drawn on the slide', async ({ context }) => {
     const { page, show } = await startShow(context);
     await page.mouse.move(640, 360);
