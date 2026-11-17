@@ -220,9 +220,11 @@ const view = `${VIEW.x} ${VIEW.y} ${VIEW.size} ${VIEW.size}`;
 // The icon: the companion on a Slides-yellow tile, peeking up from its bottom edge. He's the
 // companion's drawing scaled 390/285, with the top of his body 490 units down, then 1.1× from the
 // tile's bottom edge, so the yellow still shows past his shoulders at 16px.
+const ICON = { width: 390, top: 490.4, lift: 1.1 };
+const iconScale = () => +(ICON.width / BODY.R).toFixed(4);
 function icon(padded) {
   const top = BODY.cy - BODY.shape.h * BODY.R;
-  const fit = `translate(540 1080) scale(1.1) translate(-540 -1080) translate(540 490.4) scale(${(390 / BODY.R).toFixed(4)}) translate(-540 ${-top})`;
+  const fit = `translate(540 1080) scale(${ICON.lift}) translate(-540 -1080) translate(540 ${ICON.top}) scale(${iconScale()}) translate(-540 ${-top})`;
   // Padded, it's as the Chrome Web Store asks: the tile 96/128 of the picture in transparent
   // padding, with the subtle white outer glow Chrome suggests for mostly dark icons, so the tile
   // shows on dark backgrounds.
@@ -348,6 +350,20 @@ export function peekingDrawing() {
     base: BASE,
     margin,
   };
+}
+
+// Where the website's peeking drawing goes on the icon's tile for him to sit as he does in
+// icon.svg, as parts of the tile's side: its left and top, and its width. The website puts him on
+// a tile of its own there (scripts/build-site.mjs), so he can look about as the others do.
+export function iconPlacement() {
+  const box = furBox();
+  const top = BODY.cy - BODY.shape.h * BODY.R;
+  const k = ICON.lift * iconScale();
+  // As icon()'s transform takes a point of his to the tile's 1080 units.
+  const x = 540 + k * (box.x - 540);
+  const y = 1080 + ICON.lift * (ICON.top + iconScale() * (box.y - top) - 1080);
+  const part = (value) => +(value / 1080).toFixed(5);
+  return { left: part(x), top: part(y), width: part(k * box.width) };
 }
 
 // The toolbar companion for companion.js: his picture, with the classes it moves him by, and where

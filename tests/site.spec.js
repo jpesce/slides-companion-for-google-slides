@@ -34,7 +34,7 @@ test(
       const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(([, id]) => id);
       expect(ids, file).toEqual([...new Set(ids)]);
       const count = (pattern) => (html.match(pattern) ?? []).length;
-      expect(count(/class="slides-companion-body"/g), file).toBe(count(/class="peek[ "]/g));
+      expect(count(/class="slides-companion-body"/g), file).toBe(count(/class="(peek|icon)[ "]/g));
       // A srcset lists its files with their widths, between commas. A link to a part of a page is
       // to that page, and the site's folder is its home page.
       const local = [...html.matchAll(/(src|href|poster|srcset)="([^"]+)"/g)]
@@ -203,10 +203,49 @@ test('the website’s companions look at the pointer', { tag: '@offline' }, asyn
   const left = await where();
   await page.mouse.move(1200, 400);
   await expect.poll(async () => (await where()).every((x, i) => x > left[i])).toBe(true);
+  // The icon's, in the bar and the hero, too.
+  const icons = page.locator('.icon .slides-companion-pupil');
+  await expect(icons).toHaveCount(4);
+  const iconsAt = () => icons.evaluateAll((all) => all.map((p) => Number(p.getAttribute('cx'))));
+  const iconsRight = await iconsAt();
+  await page.mouse.move(0, 400);
+  await expect.poll(async () => (await iconsAt()).every((x, i) => x < iconsRight[i])).toBe(true);
   // Settings' illustrations are in the page, each once.
   await expect(page.locator('.art > svg')).toHaveCount(3);
   expect(errors).toEqual([]);
 });
+
+// A tap's lift brings a mousemove the companions follow anyway, so the finger here stays down: they
+// look at once, and follow it as it moves, before the page takes it for a scroll.
+test(
+  'on a phone, the companions look where a finger touches, and follow it',
+  { tag: '@offline' },
+  async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await context.newPage();
+    await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
+    await page.goto(pathToFileURL(path.join(OUT, 'index.html')).href);
+    const cdp = await context.newCDPSession(page);
+    const touch = (type, x, y) =>
+      cdp.send('Input.dispatchTouchEvent', {
+        type,
+        touchPoints: type === 'touchEnd' ? [] : [{ x, y }],
+      });
+    const pupil = page.locator('.hero-icon .slides-companion-pupil').first();
+    const x = async () => Number(await pupil.getAttribute('cx'));
+    await touch('touchStart', 10, 120);
+    await expect.poll(x).toBeLessThan(400);
+    const left = await x();
+    await touch('touchMove', 380, 125);
+    await expect.poll(x).toBeGreaterThan(left + 40);
+    await touch('touchEnd');
+    await context.close();
+  },
+);
 
 test(
   'the footer’s words run from edge to edge, rise in once, and have his eyes in their o’s',
@@ -322,7 +361,7 @@ test(
 );
 
 test(
-  'the bar at the top floats in once the hero’s name has gone, and stays',
+  'the bar at the top appears once the hero’s Add to Chrome has gone, and stays',
   { tag: '@offline' },
   async ({ page }) => {
     await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
@@ -332,8 +371,18 @@ test(
     const button = page.locator('.nav .button');
     await expect(brand).toBeHidden();
     await expect(button).toBeHidden();
+    // Not yet when only the hero's name has gone up under it: its own button is still there.
     await page.evaluate(() => {
       const box = document.querySelector('.hero .eyebrow').getBoundingClientRect();
+      scrollTo(0, box.bottom + scrollY);
+    });
+    // The observers answer by the next frame or two.
+    await page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+    );
+    await expect(page.locator('.nav')).not.toHaveClass(/\bdocked\b/);
+    await page.evaluate(() => {
+      const box = document.querySelector('.hero .actions .button').getBoundingClientRect();
       scrollTo(0, box.bottom + scrollY);
     });
     await expect(brand).toBeVisible();
@@ -438,7 +487,7 @@ test(
     await expect(hero).toHaveText('Send to my computer');
     // The bar says it short, and the small print says it's for the computer.
     await page.evaluate(() => {
-      const box = document.querySelector('.hero .eyebrow').getBoundingClientRect();
+      const box = document.querySelector('.hero .actions .button').getBoundingClientRect();
       scrollTo(0, box.bottom + scrollY);
     });
     await expect(page.locator('.nav .button')).toHaveText(/Share link/);
