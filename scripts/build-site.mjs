@@ -17,7 +17,7 @@ import http from 'node:http';
 import vm from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { peekingDrawing } from './build-brand.mjs';
+import { iconPlacement, peekingDrawing } from './build-brand.mjs';
 import { day, releasePages } from './changelog.mjs';
 import { blocks, html, inline } from './markdown.mjs';
 
@@ -119,18 +119,28 @@ export function privacy(markdown) {
   };
 }
 
+// The icon, alive: the companion as he peeks, on a tile of its own, placed as icon.svg has him, so
+// he looks about as the others do (site.js). `also` is a class of the page's for it.
+function icon(svg, also) {
+  const { left, top, width } = iconPlacement();
+  const at = (part) => `${+(part * 100).toFixed(3)}%`;
+  return `<span class="icon${also ? ` ${also}` : ''}" style="--left: ${at(left)}; --top: ${at(top)}; --width: ${at(width)}">${svg}</span>`;
+}
+
 // What every page may share, made once for all of them.
 function shared() {
   return { art: illustrations(), spoken: languages(), svg: peekingDrawing().svg };
 }
 
-// A page with what it shares filled in: {{companion}}, {{illustration name}}, {{languages}} (how
-// many), {{language names}}, and what's its own (`own`, by name).
+// A page with what it shares filled in: {{companion}}, {{icon}} (with a class of the page's for
+// it, if named), {{illustration name}}, {{languages}} (how many), {{language names}}, and what's
+// its own (`own`, by name).
 function page(file, own, { art, spoken, svg }) {
   return read(`site/${file}`).replaceAll(/\{\{([\w -]+)\}\}/g, (_, token) => {
     if (Object.hasOwn(own, token)) return own[token];
     const [what, name] = token.split(' ');
     if (what === 'companion') return svg;
+    if (what === 'icon') return icon(svg, name);
     if (what === 'illustration' && art[name]) return art[name];
     if (token === 'languages') return String(spoken.length);
     // In three rows, each twice over, for the page to drift by.

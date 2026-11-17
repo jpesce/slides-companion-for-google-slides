@@ -178,20 +178,29 @@
   // behind the film as the page opens, if its edge is in view then, reading the headline and
   // glancing at Add to Chrome before looking back out at you; otherwise (on a phone, where it's at
   // the screen's foot or below; the last call's, always) with the scroll, as that edge comes up
-  // the window. Each blinks once up. With nobody pointing for a few seconds (always, on a phone,
-  // between taps), each looks about now and then, coming back to you in between, rather than
-  // staring at the last place a pointer was.
+  // the window. Each blinks once up. The icon's companion, in the bar and the hero, is one of them
+  // too, minus the rise. All follow the mouse (companion-motion.js), and a finger: where it
+  // touches, and as it moves until the page takes it for a scroll, as the browser then stops
+  // telling. With nobody pointing for a few seconds (always, on a phone, between taps), each looks
+  // about now and then, coming back to you in between, rather than staring at the last place a
+  // pointer was.
   const { animateCompanion, companionDrawing } = globalThis.slidesCompanion;
-  const companions = [...document.querySelectorAll('.peek')].map((host) => ({
+  const companions = [...document.querySelectorAll('.peek, .icon')].map((host) => ({
     host,
     him: animateCompanion(host, companionDrawing),
     seen: false,
   }));
   let pointed = -Infinity;
+  const touched = (event) => {
+    pointed = performance.now();
+    if (event.pointerType === 'mouse') return;
+    for (const { him } of companions) him.look({ x: event.clientX, y: event.clientY });
+  };
   addEventListener('pointermove', (event) => {
     if (event.pointerType === 'mouse') pointed = performance.now();
+    else touched(event);
   });
-  addEventListener('pointerdown', () => (pointed = performance.now()));
+  addEventListener('pointerdown', touched);
   const idle = () => performance.now() - pointed > 4000;
   const centre = (element) => {
     const { left, top, width, height } = element.getBoundingClientRect();
@@ -206,6 +215,7 @@
     const headline = document.querySelector('.hero h1');
     const button = document.querySelector('.hero .button');
     for (const { host, him } of companions) {
+      if (!host.matches('.peek')) continue;
       const panel = host.closest('.panel');
       const stage = host.closest('.stage');
       const edge = () =>
@@ -301,16 +311,16 @@
     setTimeout(wander, 4200);
   }
 
-  // The bar floats down into place once the hero's name has gone up under it, as the App
-  // Store's bar fills once the app's icon has, and stays, rather than coming and going with the
-  // buttons on the page. It floats a little below the window's top, so "under it" is down to its
-  // foot. It leaves only once the name is back a little way below that line, so a scroll that
-  // stops on it, or a trackpad's settle, can't flicker it in and out. Opened already past the
-  // hero, the page has it in place, without the float. Pages whose hero doesn't hold the icon,
-  // name and button (What's new, the privacy policy) have it in place from the start.
+  // The bar appears once the hero's Add to Chrome has gone up under it, as the App Store's bar
+  // takes the Get button once the app's own has, and stays, rather than coming and going with the
+  // buttons further down the page. It floats a little below the window's top, so "under it" is
+  // down to its foot. It leaves only once the button is back a little way below that line, so a
+  // scroll that stops on it, or a trackpad's settle, can't flicker it in and out. Opened already
+  // past the hero, the page has it in place, without the transition. Pages whose hero doesn't hold
+  // the icon, name and button (What's new, the privacy policy) have it in place from the start.
   const nav = document.querySelector('.nav');
   if (!nav.classList.contains('docked')) {
-    const name = document.querySelector('.hero .eyebrow');
+    const button = document.querySelector('.hero .actions .button');
     const SLACK = 24;
     let first = true;
     const settle = (docked) => {
@@ -331,7 +341,7 @@
       watchedFoot = foot;
       for (const watcher of watchers) watcher.disconnect();
       watchers = [
-        // In once the name is wholly above the bar's foot...
+        // In once the button is wholly above the bar's foot...
         new IntersectionObserver(
           ([entry]) => {
             if (!entry.isIntersecting && entry.boundingClientRect.top < foot) settle(true);
@@ -347,7 +357,7 @@
           { rootMargin: `-${foot + SLACK}px 0px 0px 0px` },
         ),
       ];
-      for (const watcher of watchers) watcher.observe(name);
+      for (const watcher of watchers) watcher.observe(button);
     };
     watch();
     addEventListener('load', watch);
@@ -646,7 +656,8 @@
       );
       const own = seeing.getBoundingClientRect();
       const o = os.map((letter) => letter.getBoundingClientRect());
-      // Sitting on the page's foot, the tails of g, p and y the last thing on it.
+      // Sitting on the page's foot, the tails of g, p and y the last thing on it (on a phone, a
+      // gutter above it, style.css).
       phrase.style.height = `${last + INK.descent * size}px`;
 
       // His eyes, in the o's as the page lays them out, placed in their line so they rise with
@@ -864,8 +875,8 @@
     // They rise once the middle of the second row's letters, his eyes' row, is above the window's
     // foot, so both rows are seen to rise: from when a third of the phrase showed, on a laptop
     // "good company." was still partly below the window as it rose, and on a phone at its very
-    // foot. Measured, not observed: the row's window reaches past the page's end, by half its
-    // height on a phone, so how much of it shows says little.
+    // foot. Measured, not observed: the row's window reaches below the letters' tails, so how
+    // much of it shows says little.
     const mark = seeing.querySelector('.footer-base');
     let riseFrame = 0;
     const rise = () => {

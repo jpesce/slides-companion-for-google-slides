@@ -325,8 +325,6 @@ a {
     3px 12px 32px -12px rgb(0 0 0 / calc(18% * var(--lift)));
   pointer-events: auto;
   transition:
-    opacity 0.24s cubic-bezier(0, 0, 0.2, 1),
-    translate 0.5s cubic-bezier(0.2, 0, 0, 1),
     visibility 0s,
     color 0.3s,
     background-color 0.3s,
@@ -399,33 +397,69 @@ a {
     background: #e8eaed;
   }
 }
-/* The way in: the glass first, fading in quickly as it floats down 10px, so the float is seen
-   rather than spent while it's still clear (the page's own arrival curve had moved it most of the
-   way in its first 80ms, behind a half-faded bar); then what's on it, in reading order, the name
-   taking over from the hero's, the links and Add to Chrome, which the hero's own still shows. No
-   scale: on a bar this wide, 2% was a 24px zoom, twice the drop. The way out is quicker, about
-   two-thirds the time, accelerating away up the way it came, everything on the glass going with
-   it: emptied first, it had left a blank pill to fade. What's on it hides only once it's gone. */
+/* On the home page, the bar comes once the hero's Add to Chrome has gone up under it
+   (site.js), and appears where it stands, nothing moving. The glass materializes rather than
+   fading: its blur, saturation, white, rim and shadow rise from none, so the page behind turns to
+   glass. What's on it comes into focus a moment later, in reading order, as Apple's blur-replace
+   transition does: sharpening from a 6px blur and growing the last few percent, Add to Chrome a
+   little more, as the thing to press. The way out is quicker, accelerating, in the reverse of
+   how it came: the shadow goes first, the bar settling onto the page, then what's on it, then
+   the glass clears, right behind it, so no empty pill is left to fade. */
 .nav:not(.docked) .nav-inner {
   visibility: hidden;
+  --sheen: transparent;
+  background-color: rgb(255 255 255 / 0%);
+  backdrop-filter: saturate(100%) blur(0);
+  -webkit-backdrop-filter: saturate(100%) blur(0);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0%),
+    3px 12px 32px -12px rgb(0 0 0 / 0%);
+  transition:
+    visibility 0s 0.3s,
+    box-shadow 0.16s cubic-bezier(0.4, 0, 1, 1),
+    background-color 0.22s cubic-bezier(0.4, 0, 0.6, 1) 0.08s,
+    backdrop-filter 0.22s cubic-bezier(0.4, 0, 0.6, 1) 0.08s,
+    -webkit-backdrop-filter 0.22s cubic-bezier(0.4, 0, 0.6, 1) 0.08s,
+    --sheen 0.22s 0.08s;
+}
+.nav:not(.lifts).docked .nav-inner {
+  transition:
+    visibility 0s,
+    background-color 0.45s cubic-bezier(0.2, 0, 0, 1),
+    backdrop-filter 0.55s cubic-bezier(0.2, 0, 0, 1),
+    -webkit-backdrop-filter 0.55s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.5s cubic-bezier(0.2, 0, 0, 1),
+    color 0.3s,
+    --rim-top 0.3s,
+    --rim-bottom 0.3s,
+    --glint 0.3s,
+    --sheen 0.45s;
+}
+.nav:not(.lifts) .nav-inner::before {
+  transition: opacity 0.45s cubic-bezier(0.2, 0, 0, 1);
+}
+.nav:not(.docked) .nav-inner::before {
   opacity: 0;
-  translate: 0 -10px;
+  transition: opacity 0.18s cubic-bezier(0.4, 0, 0.6, 1) 0.08s;
+}
+.nav:not(.lifts) .brand,
+.nav:not(.lifts) .nav-links,
+.nav:not(.lifts) .button-small {
+  --at: 0.1s;
   transition:
-    opacity 0.18s cubic-bezier(0.4, 0, 1, 1),
-    translate 0.2s cubic-bezier(0.4, 0, 1, 1),
-    visibility 0s 0.2s;
+    opacity 0.35s cubic-bezier(0.2, 0, 0, 1) var(--at),
+    filter 0.4s cubic-bezier(0.2, 0, 0, 1) var(--at),
+    scale 0.5s cubic-bezier(0.2, 0, 0, 1) var(--at);
 }
-.nav .brand,
-.nav .nav-links,
-.nav .button-small {
-  transition: opacity 0.3s cubic-bezier(0, 0, 0.2, 1) 0.06s;
+.nav:not(.lifts) .nav-links {
+  --at: 0.14s;
 }
-.nav .nav-links {
-  transition-delay: 0.11s;
-}
-.nav .button-small {
+.nav:not(.lifts) .button-small {
+  --at: 0.18s;
   transition:
-    opacity 0.3s cubic-bezier(0, 0, 0.2, 1) 0.16s,
+    opacity 0.35s cubic-bezier(0.2, 0, 0, 1) var(--at),
+    filter 0.4s cubic-bezier(0.2, 0, 0, 1) var(--at),
+    scale 0.5s cubic-bezier(0.2, 0, 0, 1) var(--at),
     background-color 0.3s,
     color 0.3s,
     transform 0.4s var(--ease);
@@ -434,14 +468,32 @@ a {
 .nav:not(.docked) .nav-links,
 .nav:not(.docked) .button-small {
   opacity: 0;
-  transition: opacity 0s 0.2s;
+  filter: blur(6px);
+  scale: 0.97;
+  transition:
+    opacity 0.14s cubic-bezier(0.4, 0, 1, 1) 0.05s,
+    filter 0.14s cubic-bezier(0.4, 0, 1, 1) 0.05s,
+    scale 0s 0.3s;
+}
+.nav:not(.docked) .button-small {
+  scale: 0.92;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav:not(.lifts) .brand,
+  .nav:not(.lifts) .nav-links,
+  .nav:not(.lifts) .button-small {
+    scale: none !important;
+  }
 }
 /* Already scrolled past the hero when the page opens (a reload, a link to a part of it): the bar
    is simply there. */
 .nav.instant .nav-inner,
-.nav.instant .nav-inner * {
+.nav.instant .nav-inner *,
+.nav.instant .nav-inner::before,
+.nav.instant .nav-inner::after {
   transition: none !important;
 }
+
 .brand {
   display: inline-flex;
   color: inherit;
@@ -455,7 +507,7 @@ a {
 /* In the bar, the icon is round, as tall as Add to Chrome and as far inside the bar all round, so
    the bar's two ends match and its curve runs parallel to the bar's: the companion peeks from a
    round window. The app icon's own square stays where it stands alone, in the hero. */
-.nav .brand img {
+.nav .brand .icon {
   width: calc(var(--bar) - 2 * var(--bar-pad));
   height: calc(var(--bar) - 2 * var(--bar-pad));
   border-radius: 50%;
@@ -621,6 +673,26 @@ h1 {
   width: 100%;
   height: auto;
   overflow: visible;
+}
+/* The icon, alive: Slides' yellow tile, rounded as icon.svg's (240 of its 1080), with him on it
+   where icon.svg has him (scripts/build-site.mjs places him), so he can look about as the
+   companions peeking over the page's edges do (site.js). His fur reaches past the tile's sides,
+   cut off by it, as in the icon. */
+.icon {
+  position: relative;
+  display: block;
+  flex: none;
+  overflow: hidden;
+  border-radius: 22.222%;
+  background: var(--yellow);
+}
+.icon svg {
+  position: absolute;
+  left: var(--left);
+  top: var(--top);
+  width: var(--width);
+  max-width: none;
+  height: auto;
 }
 /* As the page opens he comes up from behind the film, as from behind a laptop's lid, past where
    he peeks and back, on a spring (site.js then has him read the headline). Where the film's edge
@@ -1176,9 +1248,18 @@ h2 {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+/* On a phone, a gutter's room under the words' tails: there the page's very foot is often under
+   the browser's own bar, or behind the screen's rounded corners, and the tails were cut. On a
+   bigger screen the tails are the last thing on the page (site.js). */
 .footer {
   margin-top: var(--section);
+  padding-bottom: var(--gutter);
   overflow: hidden;
+}
+@media (min-width: 734px) {
+  .footer {
+    padding-bottom: 0;
+  }
 }
 .footer-frame {
   position: relative;
