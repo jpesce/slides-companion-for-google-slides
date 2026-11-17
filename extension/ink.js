@@ -192,8 +192,19 @@
         if (inkLayer() !== shown.ink || slideId() !== shown.slide) render();
       }).observe(document, { subtree: true, childList: true });
     });
-    // After Slides has finished the stroke.
-    window.addEventListener('pointerup', () => penOn() && setTimeout(save), true);
+    // Saved in the pointerup's own dispatch, on the window's bubble phase, after Slides' handlers on
+    // the slideshow's elements; a line is whole by then (it already is at the capture phase).
+    // Saving only later (a setTimeout) let a key or clicker pressed right after the lift change
+    // slides first, so the save read the next slide's ink and the stroke was lost. A tap's dot
+    // comes later, in Slides' next frame, so the slide is saved again once that frame is drawn,
+    // unless another slide is on screen by then. Bubble phase means a stopPropagation on the
+    // pointerup would skip the save.
+    window.addEventListener('pointerup', () => {
+      if (!penOn()) return;
+      const slide = slideId();
+      save();
+      requestAnimationFrame(() => setTimeout(() => slideId() === slide && save()));
+    });
     window.addEventListener('keydown', onKeydown, true);
     window.addEventListener('mouseup', onMouseUp, true);
     window.addEventListener('resize', () => requestAnimationFrame(render));
