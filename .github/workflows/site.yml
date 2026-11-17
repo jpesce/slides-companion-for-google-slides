@@ -1,5 +1,5 @@
 # Publishes the website (site/, put together by scripts/build-site.mjs) to GitHub Pages, at
-# https://jpesce.github.io/slides-companion-for-google-slides/, when a push to main changes it or
+# https://slidescompanion.pesce.cc/, when a push to main changes it or
 # anything it takes from the extension, the brand, CHANGELOG.md and PRIVACY.md, and when a GitHub
 # release is published, so What's new shows each version as soon as GitHub does.
 # Putting it together needs nothing installed: the pictures in site/media/ are drawn on a computer
