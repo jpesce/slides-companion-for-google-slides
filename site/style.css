@@ -966,31 +966,25 @@ h2 {
   gap: 24px;
   margin-top: var(--stack);
 }
-/* From a tablet up, two cards side by side, then the last across both, its picture as tall as the
-   others', as the tools above go. Three in a row left the first two half empty beside the last's
-   longer words. */
+/* From a tablet up, two cards side by side. On a laptop the first three share a row and the last,
+   He never takes the stage, lies on its side across it: its words on the left, its picture on the
+   right. The three in a row say about as much each; beside the last's longer words, the first two
+   had been left half empty. */
 @media (min-width: 734px) {
   .cells {
     grid-template-columns: 1fr 1fr;
   }
-  .cell-last {
-    grid-column: 1 / -1;
-  }
-  .cell-last .art {
-    aspect-ratio: 1014 / 176;
-  }
-  .cell-last p {
-    max-width: 34em;
-  }
 }
-/* On a wide screen the last card lies on its side: its words on the left, its picture on the
-   right, running off the card's foot as the tools' screens do, where the picture is cut anyway. */
 @media (min-width: 1068px) {
+  .cells {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .cell.cell-last {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr auto auto 1fr;
-    padding-bottom: 0;
+    padding-top: 0;
   }
   .cell.cell-last .art {
     grid-area: 1 / 2 / -1 / 3;
@@ -1004,16 +998,24 @@ h2 {
   }
   .cell.cell-last p {
     grid-area: 3 / 1;
+    max-width: 34em;
+    margin-bottom: 0;
   }
 }
-/* The same margins inside as the tools' tiles, so the words in both start on one line. */
+/* Laid out as the tools' tiles are, with the same margins, so the words in both start on one line:
+   the words, then the picture at the card's foot, on the card's grey, its screens running off the
+   card's edges. So each is cut only where the card ends; under the words, it was cut across the
+   middle of the card, by an edge nobody could see. */
 .cell {
-  padding-bottom: var(--pad);
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--pad);
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--paper);
 }
 .art {
+  margin-top: auto;
   aspect-ratio: 495 / 176;
   overflow: hidden;
 }
@@ -1022,13 +1024,13 @@ h2 {
   height: 100%;
 }
 .cell h3 {
-  margin: 24px var(--pad) 0;
+  margin: 0 var(--pad);
   font-size: var(--t-small-head);
   line-height: 1.24;
   letter-spacing: -0.005em;
 }
 .cell p {
-  margin: 10px var(--pad) 0;
+  margin: 10px var(--pad) var(--pad);
   color: var(--ink-2);
   font-size: var(--t-body);
   line-height: 1.5;

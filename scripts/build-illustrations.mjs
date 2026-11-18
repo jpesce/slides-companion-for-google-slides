@@ -1,10 +1,11 @@
 // Draws the illustration at the top of each feature's page in Settings and writes them to
-// extension/illustrations.js (`npm run illustrations`).
+// extension/illustrations.js (`npm run illustrations`), and the website's own (siteIllustrations).
 // The frame is Android Settings' illustration frame; what's in it is drawn as Google Workspace's
 // product pages draw its apps (see frame()): white surfaces lifted by soft shadows, simple blocks
 // for words, framed close, one accent, and moves on Material's and Android's curves. Each is an
 // SVG animation (SMIL) that loops and ends as it starts.
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { pupilRoom, TOOLBAR } from './build-brand.mjs';
 
 const OUT = new URL('../extension/illustrations.js', import.meta.url);
@@ -284,7 +285,9 @@ const SYMBOLS = {
 };
 const symbol = (name, x, y, size, fill) =>
   `<path d="${SYMBOLS[name]}" fill="${fill}" transform="translate(${x - size / 2} ${y + size / 2}) scale(${size / 960})"/>`;
-// A tone of Google's blue (Material 3's primary), for the one thing a scene's about.
+// Google's blue, Material 3's primary, for the one thing a scene's about; its tone for a pick.
+const BLUE = '#0b57d0';
+const PICKED = '#d3e3fd';
 const PICKED_LINE = '#7cacf8';
 
 // Where the pointer rests before and after, on the slide's lower right, clear of anything to click.
@@ -823,6 +826,76 @@ const scenes = {};
   };
 }
 
+// The website's own, for what has no page in Settings: drawn as Settings' are, and kept out of
+// the extension (build-site.mjs asks for them).
+const siteScenes = {};
+
+// Download image: the pointer right-clicks the slide's picture and picks Download image from the
+// menu; a copy of the picture flies up into a download, whose ring fills, as Chrome's toolbar
+// shows one. The picture on the slide stays: what's saved is a copy. The website shows it at a
+// card's foot: the slide in the middle, running off the foot as the other cards' screens do, and
+// the download on its corner, so it belongs to the slide rather than to the card's corner.
+{
+  T = 6;
+  const PICK = 2.2;
+  const view = camera(1.25, 247, 3);
+  const menu = `<g transform="translate(200 78)"><g opacity="0">
+      ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 1.1, 1.22, 2.35, 2.45, T], [HOLD, FADE_IN, HOLD, FADE_OUT, HOLD])}
+      ${tf('scale', [0.92, 0.92, 1, 1], [0, 1.1, 1.3, T], [HOLD, DECEL, HOLD])}
+      <rect width="140" height="86" rx="8" fill="#fff" filter="url(#float)"/>
+      <rect y="43" width="140" height="18" fill="${PICKED}" opacity="0">${anim('opacity', [0, 0, 1, 1], [0, 1.85, 1.95, T], [HOLD, EASY, HOLD])}</rect>
+      <rect x="10" y="12" width="8" height="8" rx="2" fill="#c4c7c5"/>${bar(24, 13, 56, 6, '#e3e3e3')}
+      <rect x="10" y="30" width="8" height="8" rx="2" fill="#c4c7c5"/>${bar(24, 31, 70, 6, '#e3e3e3')}
+      ${symbol('download', 14, 52, 11, BLUE)}${bar(24, 49, 64, 6, PICKED_LINE)}
+      <rect x="10" y="66" width="8" height="8" rx="2" fill="#c4c7c5"/>${bar(24, 67, 48, 6, '#e3e3e3')}
+    </g></g>`;
+  // Where the download sits: on the slide's top right corner (the slide is 241 × 135, at 127, 23).
+  const [DX, DY] = [366, 25];
+  // The pointer rests higher than at REST, clear of the frame's foot.
+  const AWAY = [330, 108];
+  const FLY = `M190 90Q300 0 ${DX} ${DY}`;
+  const fly = `<g visibility="hidden">${during(2.35, 3.08)}
+      <g>${motion(FLY, [0, 0, 1, 1], [0, 2.35, 3.05, T], [HOLD, EASY, HOLD])}
+        <g>${tf('scale', [1, 1, 0.14, 0.14], [0, 2.35, 3.05, T], [HOLD, EASY, HOLD])}
+          <g>${anim('opacity', [1, 1, 0, 0], [0, 2.9, 3.05, T], [HOLD, EASY, HOLD])}${at(-48, -52, 1, photo('download-fly'))}</g>
+        </g>
+      </g>
+    </g>`;
+  const badge = `<g transform="translate(${DX} ${DY})"><g opacity="0">
+      ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 2.8, 2.95, 5.2, 5.45, T], [HOLD, FADE_IN, HOLD, FADE_OUT, HOLD])}
+      ${tf('scale', [0.6, 0.6, 1, 1, 0.8, 0.8], [0, 2.8, 3.05, 5.2, 5.45, T], [HOLD, DECEL, HOLD, STD_ACCEL, HOLD])}
+      <circle r="13" fill="#fff" filter="url(#lift)"/>
+      <circle r="13" fill="none" stroke="#0b57d0" stroke-width="2.5" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90)">${anim('stroke-dashoffset', [1, 1, 0, 0], [0, 3.0, 3.65, T], [HOLD, EASY, HOLD])}</circle>
+      ${symbol('download', 0, 0, 14, '#1f1f1f')}
+    </g></g>`;
+  siteScenes.download = {
+    still: 2.1,
+    svg: frame(
+      'download',
+      `
+    <!-- The slide in the editor: a photo, a title and three lines. -->
+    ${at(127, 23, 1, slide('download-a', 84, 72, 80))}
+    <!-- A copy of the photo, flying into the download. -->
+    ${fly}
+    <!-- The picture's right-click menu, Download image third. -->
+    ${menu}
+    <!-- The download, its ring filling. -->
+    ${badge}
+    ${cursor(
+      [
+        [...AWAY, 0, 0.3],
+        [196, 76, 0.9, 1.4],
+        [250, 130, 1.95, 2.5],
+        [...AWAY, 3.3, T],
+      ],
+      [],
+      [1.0, PICK],
+    )}`,
+      view,
+    ),
+  };
+}
+
 const quote = (svg) => `\`${svg.replace(/[`\\$]/g, (c) => `\\${c}`)}\``;
 // Ids live in the page's document, so each takes the extension's name.
 const named = (svg) =>
@@ -831,17 +904,26 @@ const named = (svg) =>
     .replace(/url\(#([^)]+)\)/g, 'url(#slides-companion-illustration-$1)');
 // The moment to hold still on goes with each, as data-still.
 const markup = (svg, still) => named(svg).replace('<svg ', `<svg data-still="${still}" `);
-const entries = Object.entries(scenes)
-  .map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`)
-  .join('\n');
-fs.writeFileSync(
-  OUT,
-  `// Made by scripts/build-illustrations.mjs (npm run illustrations): change that, not this.
+// The website's illustrations, by name, as build-site.mjs puts them in its pages.
+export const siteIllustrations = () =>
+  Object.fromEntries(
+    Object.entries(siteScenes).map(([id, { still, svg }]) => [id, markup(svg, still)]),
+  );
+
+// Run as a script (npm run illustrations), it writes the extension's; imported, it only draws.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const entries = Object.entries(scenes)
+    .map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`)
+    .join('\n');
+  fs.writeFileSync(
+    OUT,
+    `// Made by scripts/build-illustrations.mjs (npm run illustrations): change that, not this.
 // The illustration at the top of each feature's page in Settings (settings-dialog.js), by feature.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.illustrations = {
 ${entries}
 };
 `,
-);
-console.log(`Wrote ${Object.keys(scenes).join(', ')} to extension/illustrations.js`);
+  );
+  console.log(`Wrote ${Object.keys(scenes).join(', ')} to extension/illustrations.js`);
+}
