@@ -128,11 +128,12 @@ export function privacy(markdown) {
 }
 
 // The icon, alive: the companion as he peeks, on a tile of its own, placed as icon.svg has him, so
-// he looks about as the others do (site.js). `also` is a class of the page's for it.
+// he looks about as the others do (site.js). `also` is a class of the page's for it. The rim over
+// him is the light on the tile's edge, where style.css draws one (the hero's).
 function icon(svg, also) {
   const { left, top, width } = iconPlacement();
   const at = (part) => `${+(part * 100).toFixed(3)}%`;
-  return `<span class="icon${also ? ` ${also}` : ''}" style="--left: ${at(left)}; --top: ${at(top)}; --width: ${at(width)}">${svg}</span>`;
+  return `<span class="icon${also ? ` ${also}` : ''}" style="--left: ${at(left)}; --top: ${at(top)}; --width: ${at(width)}">${svg}<span class="rim"></span></span>`;
 }
 
 // What every page may share, made once for all of them.
