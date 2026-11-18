@@ -108,8 +108,9 @@
         let edge = 0;
         while (at > edges[edge]) at -= edges[edge++];
         const share = at / edges[edge];
-        // Clear of the letters by at least a few pixels, whatever its size.
-        const gap = size / 2 + between(3, 10);
+        // Close to the word, as glints off it: its centre less than half its size out from the
+        // word's box, which reaches a little past the letters, so its points just touch the edge.
+        const gap = size * 0.4 + between(0, 2);
         const [dx, dy] = [
           [share * width, -gap],
           [width + gap, share * height],
@@ -147,13 +148,15 @@
     };
     const twinkle = () => {
       spark(Math.random() < 0.15);
-      timer = setTimeout(twinkle, between(140, 420));
+      // After the burst, a lone glint every few seconds: a steady twinkle, two or three at a
+      // time, pulled the eye off the words around it, and off Add to Chrome below.
+      timer = setTimeout(twinkle, between(2600, 4400));
     };
     const run = () => {
       clearTimeout(timer);
       timer = 0;
       host.classList.toggle('resting', !seen || document.hidden);
-      if (lit && seen && !document.hidden) timer = setTimeout(twinkle, between(260, 360));
+      if (lit && seen && !document.hidden) timer = setTimeout(twinkle, between(1600, 2400));
     };
     new IntersectionObserver(([entry]) => {
       seen = entry.isIntersecting;
@@ -410,11 +413,21 @@
   const stage = document.querySelector('.stage');
   if (stage) {
     const video = stage.querySelector('.screen video');
+    const screen = stage.querySelector('.screen');
     const play = () => {
       stage.classList.add('playing');
       video.controls = true;
       video.play();
       video.focus({ preventScroll: true });
+      // Played from the hero on a laptop, most of the film is below the window's foot: it comes up
+      // whole, in the middle of the room under the bar, or right under the bar if it's taller than
+      // that, as a film started on Apple's pages fills the view.
+      const box = screen.getBoundingClientRect();
+      const under = nav.offsetTop + nav.offsetHeight + 16;
+      if (box.top >= under && box.bottom <= innerHeight) return;
+      // Smooth, or at once with reduced motion, as the root's scroll-behavior has it (style.css).
+      const room = innerHeight - under;
+      scrollBy(0, box.top - under - Math.max(0, (room - box.height) / 2));
     };
     for (const button of document.querySelectorAll('[data-play]'))
       button.addEventListener('click', play);
@@ -472,33 +485,68 @@
   }
 
   // Only what's below the fold waits to rise in, so nothing on screen blinks out as the page loads,
-  // and without this script everything simply shows.
+  // and without this script everything simply shows. A surface (a tile, a card, the last call's
+  // panel, What's new's list of changes) is simply on the page, and what's on it arrives, each
+  // piece as it comes into view, rising inside it (style.css): a tile's words line by line, the
+  // moment, the title and what it does, then its picture from lower down. A version's notes and
+  // the privacy policy's parts are read rather than shown: the rule above each stays, and its
+  // words arrive as they come up the window's foot rather than an eighth of the way up it, so a
+  // reader's next line is never still on its way.
+  let arriveIn = null;
   if (!still.matches && 'IntersectionObserver' in window) {
     // What comes into view together arrives a beat apart, top to bottom and left to right, so a
-    // row of two reads as two, not as one slab.
-    const arrive = new IntersectionObserver(
-      (entries) => {
-        const coming = entries
-          .filter((entry) => entry.isIntersecting)
-          .map(({ target, boundingClientRect: box }) => ({ target, box }))
-          .sort((a, b) => a.box.top - b.box.top || a.box.left - b.box.left);
-        coming.forEach(({ target }, i) => {
-          target.style.setProperty('--delay', `${Math.min(i, 3) * 90}ms`);
+    // row of two reads as two, not as one slab, and a tile's lines read in order.
+    const land = (entries) =>
+      entries
+        .filter((entry) => entry.isIntersecting)
+        .map(({ target, boundingClientRect: box }) => ({ target, box }))
+        .sort((a, b) => a.box.top - b.box.top || a.box.left - b.box.left)
+        .forEach(({ target }, i) => {
+          target.style.setProperty('--delay', `${Math.min(i, 5) * 70}ms`);
           target.classList.replace('waiting', 'arrived');
-          arrive.unobserve(target);
+          shown.unobserve(target);
+          read.unobserve(target);
         });
-      },
-      { rootMargin: '0px 0px -12% 0px' },
-    );
-    for (const element of document.querySelectorAll('[data-reveal]')) {
-      if (element.getBoundingClientRect().top < innerHeight) continue;
-      element.classList.add('waiting');
-      arrive.observe(element);
-    }
+    const shown = new IntersectionObserver(land, { rootMargin: '0px 0px -12% 0px' });
+    const read = new IntersectionObserver(land, { rootMargin: '0px 0px -4% 0px' });
+    const pieces = (element) => {
+      if (element.matches('.version'))
+        return [
+          element.querySelector('.version-side'),
+          ...(element.querySelector('.notes')?.children ?? []),
+        ].filter(Boolean);
+      if (!element.matches('.tile, .cell, .panel, .changes')) return [element];
+      return [...element.children]
+        .flatMap((child) => (child.matches('.tile-copy') ? [...child.children] : [child]))
+        .filter((child) => !child.matches('.peek'));
+    };
+    const holdBack = (piece) => {
+      piece.classList.remove('arrived');
+      piece.classList.add('waiting');
+      (piece.closest('.version') ? read : shown).observe(piece);
+    };
+    // Every piece measured before any is held back: holding one first restyles it, and measuring
+    // the next would then recalculate the page's style once per piece.
+    const below = [...document.querySelectorAll('[data-reveal]')]
+      .flatMap((element) => pieces(element))
+      .filter((piece) => piece.getBoundingClientRect().top >= innerHeight);
+    for (const piece of below) holdBack(piece);
+    // What's just been shown in place of something else, one of What's new's tabs for the other:
+    // its words arrive line by line, the hero's and any older version still to come included,
+    // those on screen at once and the rest as they're scrolled to.
+    arriveIn = (roots) => {
+      for (const root of roots)
+        for (const element of root.querySelectorAll(
+          '.eyebrow, h1, .lead, .release-date, .also-next > *, [data-reveal]',
+        ))
+          for (const piece of element.matches('[data-reveal]') ? pieces(element) : [element])
+            holdBack(piece);
+    };
   }
 
-  // What's new's tabs: one raised thumb that slides to the tab you pick, and the tab's page fading
-  // up as it swaps in (style.css). Out now unless the address is #next, as the stylesheet reads it.
+  // What's new's tabs: one raised thumb that slides to the tab you pick, what's shown going first
+  // and the other tab's words arriving line by line as it swaps in (style.css). Out now unless the
+  // address is #next, as the stylesheet reads it.
   const tabs = document.querySelector('.tabs');
   if (tabs) {
     const thumb = document.createElement('span');
@@ -518,16 +566,52 @@
     };
     place(false);
     new ResizeObserver(() => place(false)).observe(tabs);
-    // Marked as a tab is picked, not before, so the page doesn't fade in as it opens.
-    // The tab picked opens at once, as the link is followed; going back or forward, as the address
-    // changes.
-    const open = (hash) =>
-      (document.documentElement.dataset.tab = hash === '#next' ? 'next' : 'now');
+    // The tab picked opens as the link is followed; going back or forward, as the address changes.
+    // What's shown goes first, quickly, speeding up as it goes, and the other is then drawn
+    // waiting and arrives line by line, as things do as they scroll into view. The swap waits for
+    // the fade itself to end: a timer copying its length fired a frame before it had, and the old
+    // words dropped out from a fifth of their opacity.
+    let showing = document.documentElement.dataset.tab;
+    let leaving = [];
+    const open = (hash) => {
+      const tab = hash === '#next' ? 'next' : 'now';
+      if (tab === showing) return;
+      showing = tab;
+      for (const fade of leaving) fade.cancel();
+      // With reduced motion, asked for since the page opened too, the other tab is simply there.
+      const moving = arriveIn && !still.matches;
+      const show = () => {
+        document.documentElement.dataset.tab = tab;
+        for (const fade of leaving) fade.cancel();
+        leaving = [];
+        if (moving)
+          arriveIn(document.querySelectorAll(tab === 'next' ? '.coming-next' : '.out-now'));
+      };
+      if (!moving) {
+        show();
+        return;
+      }
+      const fades = [...document.querySelectorAll(tab === 'next' ? '.out-now' : '.coming-next')]
+        .filter((part) => part.getClientRects().length)
+        .map((part) =>
+          part.animate(
+            { opacity: 0 },
+            { duration: 120, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' },
+          ),
+        );
+      leaving = fades;
+      // Picked again before it's gone, the newer pick takes over and this one's swap is dropped.
+      Promise.all(fades.map((fade) => fade.finished)).then(
+        () => leaving === fades && show(),
+        () => {},
+      );
+    };
     tabs.addEventListener('click', (event) => {
-      // A click between the tabs, or on the thumb, picks none, and leaves the address as it is.
+      // A click between the tabs, or on the thumb, picks none, and leaves the address as it is. A
+      // click that opens the link elsewhere (a new tab or window) changes no address here, so it
+      // leaves this page's tab, and the thumb under it, as they are.
       const link = event.target.closest('a');
-      if (!link) return;
-      document.body.classList.add('switching');
+      if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       open(link.hash);
     });
     addEventListener('hashchange', () => {
@@ -601,6 +685,74 @@
     draw();
     addEventListener('scroll', measure, { passive: true });
     addEventListener('resize', measure);
+  }
+
+  // The languages drift with the scroll: their own ways while the page goes down, the middle row
+  // the other way, and turning round, over a moment, while it goes up, quicker for a quick
+  // scroll and easing back to their drift after it. Between scrolls they keep drifting the way it
+  // last went. The drift is style.css's animation, run off the main thread; a scroll only steers
+  // its playback rate, frame by frame until the turn and the push have settled, and then nothing
+  // of this runs. With reduced motion, style.css stops the animation and there's nothing to steer.
+  const languages = document.querySelector('.art-languages');
+  if (languages) {
+    const rows = [...languages.querySelectorAll('.row')];
+    // Each drift is moved a thousand loops on, the first time it's steered, to where it looks the
+    // same: played backwards, an animation stops at its start, and this leaves it hours of room.
+    const started = new WeakSet();
+    const steer = (rate) => {
+      for (const drift of rows.flatMap((row) => row.getAnimations())) {
+        if (!started.has(drift)) {
+          started.add(drift);
+          drift.currentTime += 1000 * drift.effect.getComputedTiming().duration;
+        }
+        drift.updatePlaybackRate(rate);
+      }
+    };
+    let way = 1;
+    let heading = 1;
+    let kick = 0;
+    let lastY = scrollY;
+    let then = 0;
+    let frame = 0;
+    let seen = false;
+    const tick = (now) => {
+      const step = then ? Math.min(now - then, 64) : 16;
+      then = now;
+      const moved = scrollY - lastY;
+      lastY = scrollY;
+      if (moved) {
+        way = Math.sign(moved);
+        kick = Math.max(kick, Math.min(5, (Math.abs(moved) / step) * 2.5));
+      }
+      // Turning round takes about a quarter of a second, and a quick scroll's push fades over a
+      // third, frame-rate independent.
+      heading += (way - heading) * (1 - Math.exp(-step / 260));
+      kick *= Math.exp(-step / 320);
+      const settled = !moved && Math.abs(way - heading) < 0.001 && kick < 0.001;
+      if (settled) [heading, kick] = [way, 0];
+      steer(heading * (1 + kick));
+      frame = settled ? 0 : requestAnimationFrame(tick);
+      if (!frame) then = 0;
+    };
+    // Off screen, a scroll only sets which way they'll be going when they're next seen.
+    addEventListener(
+      'scroll',
+      () => {
+        if (seen) {
+          frame ||= requestAnimationFrame(tick);
+          return;
+        }
+        if (scrollY !== lastY) way = Math.sign(scrollY - lastY);
+        lastY = scrollY;
+      },
+      { passive: true },
+    );
+    new IntersectionObserver(([entry]) => {
+      seen = entry.isIntersecting;
+      if (!seen || frame) return;
+      [heading, kick, lastY] = [way, 0, scrollY];
+      steer(heading);
+    }).observe(languages);
   }
 
   // The footer's words, "You're in good company.": sized so their letters run edge to edge, the

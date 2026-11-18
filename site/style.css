@@ -75,6 +75,11 @@
     0.995,
     1
   );
+  /* A critically damped spring's way of arriving, as SwiftUI's smooth spring moves: it leaves
+     gently rather than at full speed, and comes to rest with no overshoot. Where linear() isn't
+     known (Safari before 17.2), the decelerating curve closest to it, rather than a transition
+     shorthand that would no longer parse, leaving nothing to transition at all. */
+  --settle: cubic-bezier(0.2, 0, 0, 1);
 
   /* Each size from a phone's 390px window to a laptop's 1280px, held beyond. */
   --t-hero: clamp(48px, 37.48px + 2.697vw, 72px);
@@ -101,6 +106,37 @@
   --width: 100%;
   --gutter: 24px;
   --peek-right: 24px;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --settle: linear(
+      0,
+      0.057,
+      0.18,
+      0.321,
+      0.455,
+      0.573,
+      0.671,
+      0.75,
+      0.812,
+      0.86,
+      0.896,
+      0.924,
+      0.944,
+      0.96,
+      0.971,
+      0.979,
+      0.985,
+      0.989,
+      0.992,
+      0.994,
+      0.996,
+      0.997,
+      0.998,
+      0.999,
+      1
+    );
+  }
 }
 /* A tablet. */
 @media (min-width: 734px) {
@@ -1042,6 +1078,7 @@ h2 {
   line-height: 1.24;
   letter-spacing: -0.005em;
 }
+/* With the script, the scroll steers their playback rate, which way and how fast (site.js). */
 @keyframes drift {
   to {
     translate: -50% 0;
@@ -1054,7 +1091,8 @@ h2 {
    scrolls through them, one after another, and empties as it scrolls back (site.js sets --fill).
    Words only, set on the left; the number is a quiet label rather than a badge. Once the last rule
    is full, the last step pays off: Slides yellow, as on the icon, sweeps in behind "superpowers"
-   like a highlighter (--glow), and sparkles keep twinkling around it while it's there. Without
+   like a highlighter (--glow), sparkles burst around it, and one glints now and then while it's
+   there. Without
    the script, or with reduced motion, the rules are filled, the word highlighted, and one sparkle
    sits beside it, still. */
 .steps ol {
@@ -1124,8 +1162,9 @@ h2 {
   background: none;
 }
 /* A highlighter's stroke: rounded, a touch off level, drawn left to right. Its sheen (::after) has
-   the same shape, and crosses it as it's finished, then again every few seconds while it stays,
-   resting while it's off screen (site.js sets .resting). */
+   the same shape, and crosses it once, as it's finished: crossing again every few seconds, it
+   pulled the eye off the words around it. It waits while the word is off screen (site.js sets
+   .resting). */
 .steps mark::before,
 .steps mark::after {
   content: '';
@@ -1146,38 +1185,35 @@ h2 {
     no-repeat 100% 0 / 250% 100%;
   opacity: 0;
 }
-/* Finished, the stroke swells a little, as ink does when a pen lifts, and settles. */
+/* Finished, the stroke swells a little, as ink does when a pen lifts, and settles: 12%, which
+   reads as ink; by a third, it read as a cartoon's bounce. */
 .steps mark.lit::before {
   animation: stroke-set 0.55s cubic-bezier(0.3, 0, 0.2, 1);
 }
 .steps mark.lit::after {
-  animation: sheen 3.2s 0.12s infinite;
+  animation: sheen 0.8s 0.12s;
 }
 .steps mark.resting::after {
   animation-play-state: paused;
 }
 @keyframes stroke-set {
   40% {
-    scale: 1.02 1.32;
+    scale: 1.01 1.12;
   }
   72% {
-    scale: 1 0.94;
+    scale: 1 0.97;
   }
 }
-/* A 0.8s pass, then a pause. */
+/* A 0.8s pass, then gone: once it ends, the sheen is back to its own opacity, none. */
 @keyframes sheen {
-  0% {
+  from {
     opacity: 1;
     background-position: 100% 0;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
-  25% {
+  to {
     opacity: 1;
     background-position: 0% 0;
-  }
-  25.01%,
-  100% {
-    opacity: 0;
   }
 }
 /* Sparkles: site.js lights them around the word for as long as it's highlighted, each growing as
@@ -1557,8 +1593,9 @@ html[data-tab='now'] .coming-next {
   display: none;
 }
 /* With the script, the white is one raised thumb that slides from tab to tab, stretching to the
-   next one's width, as a segmented control's does, rather than jumping; and the tab's page fades
-   up into place as it swaps in. Without it, the tab you're on is raised on its own, as above. */
+   next one's width, as a segmented control's does, rather than jumping; and the tab's words arrive
+   line by line as it swaps in (below). Without it, the tab you're on is raised on its own, as
+   above. */
 .tabs {
   position: relative;
 }
@@ -1573,27 +1610,25 @@ html[data-tab='now'] .coming-next {
     0 0 0 1px rgb(0 0 0 / 6%),
     0 1px 3px rgb(0 0 0 / 10%);
   transition:
-    translate 0.4s cubic-bezier(0.2, 0, 0, 1),
-    width 0.4s cubic-bezier(0.2, 0, 0, 1);
+    translate 0.5s var(--settle),
+    width 0.5s var(--settle),
+    scale 0.4s var(--ease);
+}
+/* Pressed, the tab you're on gives a little, as a segmented control's thumb does under a finger,
+   at once, and springs back as it's let go, as the buttons do. */
+html[data-tab='now'] .tabs:has(a[href='#now']:active) .tabs-thumb,
+html[data-tab='next'] .tabs:has(a[href='#next']:active) .tabs-thumb {
+  scale: 0.95;
+  transition:
+    translate 0.5s var(--settle),
+    width 0.5s var(--settle),
+    scale 0.1s cubic-bezier(0.3, 0, 0.2, 1);
 }
 .tabs.sliding a {
   position: relative;
   /* Over the selected tab's own raised white, which the thumb takes over from. */
   background: none !important;
   box-shadow: none !important;
-}
-.switching .out-now,
-.switching .coming-next {
-  transition:
-    opacity 0.4s cubic-bezier(0.2, 0, 0, 1),
-    translate 0.5s cubic-bezier(0.2, 0, 0, 1);
-}
-@starting-style {
-  .switching .out-now,
-  .switching .coming-next {
-    opacity: 0;
-    translate: 0 8px;
-  }
 }
 .next-number {
   color: var(--ink-3);
@@ -1879,21 +1914,53 @@ code {
 
 /* ---- Things arrive as they scroll into view (site.js marks those below the fold) ---- */
 
-/* Each rises 24px into place and fades in. The rise starts gently and settles long, as the
-   footer's words do: on the page's arrival curve it jumped 13px in its first 75ms, then crept the
-   last few pixels for a second. The fade is quicker, so each is whole well before it settles.
-   What arrives together, two tiles side by side, comes a beat apart, left to right (site.js sets
-   --delay). */
+/* A surface, a tile, a card or a panel, is simply on the page, and what's on it arrives: words
+   rise 16px, line by line, and a picture rises further inside its frame, 40px, from a hair larger,
+   so it settles into place as the words above it are read. Faded in whole, the black tile passed
+   through a grey slab on its way. Each settles on --settle, and fades in quicker, so it's whole
+   well before it's still. What arrives together comes a beat apart, top to bottom and left to
+   right (site.js sets --delay). */
 .waiting {
   opacity: 0;
-  translate: 0 24px;
+  translate: 0 16px;
+}
+.tile-media.waiting,
+.art.waiting {
+  translate: 0 40px;
+  scale: 1.02;
+}
+.tile-media,
+.art {
+  transform-origin: 50% 0;
 }
 .arrived {
   opacity: 1;
   translate: 0 0;
   transition:
-    opacity 0.6s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s),
-    translate 0.9s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s);
+    opacity 0.5s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s),
+    translate 1s var(--settle) var(--delay, 0s),
+    scale 1.2s var(--settle) var(--delay, 0s);
+}
+/* A button arriving (the last call's Add to Chrome) keeps its own hover and release transitions,
+   which the list above would otherwise replace for good: its hover snapped, and a press let go
+   jumped back rather than springing. Pressed, .button:active's own list applies. */
+.button.arrived:not(:active) {
+  transition:
+    opacity 0.5s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s),
+    translate 1s var(--settle) var(--delay, 0s),
+    background-color 0.2s,
+    transform 0.4s var(--ease);
+}
+/* On the pages that are read rather than shown, a version's notes and the privacy policy's parts,
+   the rule above each stays put, and its words arrive quieter: half the rise, a quicker fade, and
+   sooner, as they come up the window's foot (site.js), so reading never waits on them. */
+.version .waiting {
+  translate: 0 8px;
+}
+.version .arrived {
+  transition:
+    opacity 0.35s cubic-bezier(0.2, 0, 0, 1) var(--delay, 0s),
+    translate 0.7s var(--settle) var(--delay, 0s);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1910,9 +1977,7 @@ code {
   .row {
     animation: none;
   }
-  .tabs-thumb,
-  .switching .out-now,
-  .switching .coming-next {
+  .tabs-thumb {
     transition: none;
   }
   .stage .peek {
