@@ -1,8 +1,9 @@
 // Draws the illustration at the top of each feature's page in Settings and writes them to
-// extension/illustrations.js (`npm run illustrations`). The style comes from Android Settings'
-// illustration frame, a slide drawn as Android draws a screen (an outline and
-// simple blocks), one accent, and moves on Material's and Android's curves. Each is an SVG
-// animation (SMIL) that loops and ends as it starts.
+// extension/illustrations.js (`npm run illustrations`).
+// The frame is Android Settings' illustration frame; what's in it is drawn as Google Workspace's
+// product pages draw its apps (see frame()): white surfaces lifted by soft shadows, simple blocks
+// for words, framed close, one accent, and moves on Material's and Android's curves. Each is an
+// SVG animation (SMIL) that loops and ends as it starts.
 import fs from 'node:fs';
 import { pupilRoom, TOOLBAR } from './build-brand.mjs';
 
@@ -55,22 +56,87 @@ const during = (from, to) =>
     ? step('visibility', ['hidden', 'visible', 'hidden'], [0, from, to])
     : step('visibility', ['visible', 'hidden'], [0, to]);
 
-// Android Settings' illustration frame (28dp corners), in Slides' surface colour.
-const frame = (
-  id,
-  body,
-) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 ${W} 176" width="${W}" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
+// Android Settings' illustration frame (28dp corners), in Slides' surface colour. What's drawn on
+// it is in Google Workspace's manner, as its own product pages draw its apps: white surfaces
+// lifted by a soft shadow rather than outlined (a menu or a window floating over the rest by a
+// deeper one), framed close on what matters and running off the frame's edges, one colour on the
+// action, Material Symbols for icons, and no words, so each reads in every language. The camera,
+// [scale, x, y], frames a scene closer without moving anything in it: it scales about that point,
+// and the pointer is drawn as much smaller, so it stays its size (CAMERA).
+let CAMERA = 1;
+const frame = (id, body, [scale, x, y] = [1, 0, 0]) => {
+  CAMERA = 1;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 ${W} 176" width="${W}" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
   <defs><clipPath id="${id}-frame"><rect y="2" width="${W}" height="176" rx="28"/></clipPath></defs>
   <g clip-path="url(#${id}-frame)">
     <rect y="2" width="${W}" height="176" fill="#f0f4f9"/>
-    ${body}
+    <g transform="translate(${(x * (1 - scale)).toFixed(2)} ${(y * (1 - scale)).toFixed(2)}) scale(${scale})">
+    ${lifted(body)}
+    </g>
   </g>
 </svg>`;
+};
 
-// A slide, in its own 241 × 135 space, drawn as Android draws a screen: an outline that keeps 2px
-// at any size, and simple blocks.
-const outline = () =>
-  '<rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+// Each shadow is two layers, as Workspace's elevation is: [dy, blur (a Gaussian's σ), opacity], and
+// the filter region it's drawn in, as a fraction of the shape's box ([x, y, width, height]).
+const SHADOWS = {
+  lift: {
+    layers: [
+      [1, 1, 0.08],
+      [3, 5, 0.07],
+    ],
+    region: [-0.1, -0.1, 1.2, 1.3],
+  },
+  float: {
+    layers: [
+      [2, 2, 0.1],
+      [8, 10, 0.12],
+    ],
+    region: [-0.15, -0.15, 1.3, 1.4],
+  },
+};
+// A shape marked filter="url(#lift)" or "url(#float)" gets its shadow from an <image> of an SVG
+// that blurs a copy of the shape, laid under it. Filtered straight in the illustration, WebKit runs
+// the blur again on every frame anything in the SVG animates, which drops the loops to a few frames
+// a second on a phone; as an image, it rasterises the shadow once and reuses it. The image holds
+// only the shadow, so the shape's edge is drawn once, crisp, by the shape itself.
+const lifted = (body) =>
+  body.replace(
+    /<(rect|circle)([^>]*?) filter="url\(#(lift|float)\)"\s*\/>/g,
+    (_, tag, attrs, kind) => {
+      const value = (name) => Number(attrs.match(new RegExp(`\\b${name}="([-\\d.]+)"`))?.[1] ?? 0);
+      const box =
+        tag === 'circle'
+          ? [value('cx') - value('r'), value('cy') - value('r'), 2 * value('r'), 2 * value('r')]
+          : [value('x'), value('y'), value('width'), value('height')];
+      const { layers, region } = SHADOWS[kind];
+      const [x, y, w, h] = [
+        box[0] + region[0] * box[2],
+        box[1] + region[1] * box[3],
+        region[2] * box[2],
+        region[3] * box[3],
+      ].map((v) => +v.toFixed(2));
+      const blurs = layers
+        .map(
+          ([dy, blur, opacity], i) =>
+            `<feGaussianBlur in='SourceAlpha' stdDeviation='${blur}'/><feOffset dy='${dy}'/><feComponentTransfer result='s${i}'><feFuncA type='linear' slope='${opacity}'/></feComponentTransfer>`,
+        )
+        .join('');
+      const merge = layers.map((_, i) => `<feMergeNode in='s${i}'/>`).join('');
+      const shape = `<${tag}${attrs.replace(/ fill="[^"]*"/, '').replaceAll('"', "'")}/>`;
+      const shadow = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='${x} ${y} ${w} ${h}' width='${w}' height='${h}'><filter id='s' filterUnits='userSpaceOnUse' x='${x}' y='${y}' width='${w}' height='${h}'>${blurs}<feMerge>${merge}</feMerge></filter><g filter='url(#s)'>${shape}</g></svg>`;
+      const href = `data:image/svg+xml,${shadow.replace(/[%#<>]/g, encodeURIComponent)}`;
+      return `<image x="${x}" y="${y}" width="${w}" height="${h}" href="${href}"/><${tag}${attrs}/>`;
+    },
+  );
+// Each scene sets its camera before it draws, so its pointer knows how much to shrink.
+const camera = (scale, x, y) => {
+  CAMERA = scale;
+  return [scale, x, y];
+};
+
+// A slide, in its own 241 × 135 space: a white surface lifted by a soft shadow, and simple blocks.
+const outline = () => '<rect width="241" height="135" rx="12" fill="#fff" filter="url(#lift)"/>';
 const bar = (x, y, w, h, fill) =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}"/>`;
 const title = bar(129, 23, 90, 10, '#c4c7c5');
@@ -198,7 +264,7 @@ const cursor = (stops, shapes = [], clicks = [], beside = '') => {
   return `<g>
       ${motion(d, points, times, curves)}
       <g>${press}
-        <g transform="scale(1.25)" fill="#fff" stroke="#1f1f1f" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+        <g transform="scale(${(1.25 / CAMERA).toFixed(4)})" fill="#fff" stroke="#1f1f1f" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
           <path d="${ARROW}" visibility="hidden">${step('visibility', arrow.values, arrow.times)}</path>
           ${shapes.map(([shape, from, to]) => `<g visibility="hidden">${during(from, to)}${shape}</g>`).join('\n          ')}
         </g>
@@ -206,12 +272,26 @@ const cursor = (stops, shapes = [], clicks = [], beside = '') => {
       ${beside}
     </g>`;
 };
+// Material Symbols (outlined), as Slides' own icons are, centred on x y at a size.
+const SYMBOLS = {
+  close:
+    'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
+  download:
+    'M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z',
+  open: 'M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z',
+  timer:
+    'M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm40 320q-74 0-139.5-28.5T226-186q-49-49-77.5-114.5T120-440q0-74 28.5-139.5T226-694q49-49 114.5-77.5T480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Z',
+};
+const symbol = (name, x, y, size, fill) =>
+  `<path d="${SYMBOLS[name]}" fill="${fill}" transform="translate(${x - size / 2} ${y + size / 2}) scale(${size / 960})"/>`;
+// A tone of Google's blue (Material 3's primary), for the one thing a scene's about.
+const PICKED_LINE = '#7cacf8';
+
 // Where the pointer rests before and after, on the slide's lower right, clear of anything to click.
 const REST = [330, 124];
 
 // Spotlight's stage: black, with the bars in the stage's dark grey, and Close at the top right.
-const closer = `<circle cx="458" cy="28" r="10" fill="#1f1f1f"/>
-      <path d="M454 24L462 32M462 24L454 32" stroke="#e3e3e3" stroke-width="1.75" stroke-linecap="round"/>`;
+const closer = `<circle cx="458" cy="28" r="10" fill="#303030"/>${symbol('close', 458, 28, 12, '#e3e3e3')}`;
 const chevron = (x, dir, y = 164) =>
   `<path d="M${x + 2 * dir} ${y - 4}L${x - 2 * dir} ${y}L${x + 2 * dir} ${y + 4}" fill="none" stroke="#e3e3e3" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>`;
 const stage = (from, to, body) => `<g opacity="0">
@@ -230,6 +310,7 @@ const scenes = {};
   const open = 1.1,
     next = 2.5,
     close = 3.9;
+  const view = camera(1.08, 330, 193);
   scenes.spotlight = {
     still: 1.8,
     svg: frame(
@@ -243,14 +324,15 @@ const scenes = {};
       close,
       `<g visibility="hidden">${during(open, next)}${at(190.25, 22, 1.1923, photo('spotlight-a-stage', 8 / 1.1923))}</g>
       <g visibility="hidden">${during(next, T)}${at(108, 22, 3.1, wide('spotlight-b-stage', 8 / 3.1))}</g>
-      <rect x="217.5" y="154" width="60" height="20" rx="10" fill="#1f1f1f"/>
-      ${chevron(231, 1)}${chevron(264, -1)}${bar(240, 162, 15, 4, '#e3e3e3')}`,
+      <rect x="206.5" y="154" width="82" height="20" rx="10" fill="#1f1f1f"/>
+      ${chevron(220, 1)}${chevron(253, -1)}${bar(229, 162, 15, 4, '#e3e3e3')}
+      <path d="M264 159V169" stroke="#5f6368"/>${symbol('download', 276, 164, 11, '#e3e3e3')}`,
     )}
     ${cursor(
       [
         [458, 28, 0, 0.25],
         [196, 96, 0.85, 1.35],
-        [264, 164, 2.05, 2.6],
+        [253, 164, 2.05, 2.6],
         [458, 28, 3.35, T],
       ],
       [
@@ -260,6 +342,7 @@ const scenes = {};
       ],
       [open - 0.1, next - 0.1, close - 0.1],
     )}`,
+      view,
     ),
   };
 }
@@ -269,6 +352,7 @@ const scenes = {};
 {
   const open = 1.1,
     close = 4.0;
+  const view = camera(1.08, 330, 193);
   const page = `<clipPath id="links-page"><rect x="92" y="18" width="311" height="128" rx="8"/></clipPath>
       <rect x="92" y="18" width="311" height="128" rx="8" fill="#fff"/>
       <g clip-path="url(#links-page)"><g>
@@ -294,7 +378,7 @@ const scenes = {};
       `${page}
       <rect x="197.5" y="154" width="100" height="20" rx="10" fill="#1f1f1f"/>
       <circle cx="210" cy="164" r="4" fill="#a8c7fa"/>${bar(219, 162, 46, 4, '#e3e3e3')}
-      <path d="M281 160H277.5Q276 160 276 161.5V168.5Q276 170 277.5 170H284.5Q286 170 286 168.5V165M283 159H287V163M287 159L281.5 164.5" fill="none" stroke="#e3e3e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+      ${symbol('open', 281, 164, 11, '#e3e3e3')}`,
     )}
     ${cursor(
       [
@@ -309,6 +393,7 @@ const scenes = {};
       ],
       [open - 0.1, close - 0.1],
     )}`,
+      view,
     ),
   };
 }
@@ -321,6 +406,9 @@ const scenes = {};
     PAN = [2.5, 3.3],
     OUT = [3.6, 4.4],
     HELD = [2.35, 3.45];
+  const view = camera(1.45, 247, 43);
+  // Framed this close, the pointer at REST would be cut by the frame's foot: it rests higher.
+  const AWAY = [330, 112];
   const standard = ease(0.2, 0, 0, 1),
     easy = ease(0.33, 0, 0.67, 1);
   const progress = (t, [from, to], curve) =>
@@ -363,7 +451,7 @@ const scenes = {};
       `
     <!-- The slide, zoomed inside the screen's outline. -->
     <clipPath id="zoom-screen"><rect x="127" y="23" width="241" height="135" rx="12"/></clipPath>
-    <rect x="127" y="23" width="241" height="135" rx="12" fill="#fff"/>
+    <rect x="127" y="23" width="241" height="135" rx="12" fill="#fff" filter="url(#lift)"/>
     <g clip-path="url(#zoom-screen)"><g>
       ${sampled(
         'translate',
@@ -376,18 +464,18 @@ const scenes = {};
       )}
       ${at(127, 23, 1, slide('zoom-a', 84, 72, 80))}
     </g></g>
-    <rect x="127" y="23" width="241" height="135" rx="12" fill="none" stroke="#c4c7c5" stroke-width="2"/>
     ${cursor(
       [
-        [...REST, 0, 0.3],
+        [...AWAY, 0, 0.3],
         [218, 72, 1.0, PAN[0]],
         [158, 72, PAN[1], 4.6, 'line'],
-        [...REST, 5.3, T],
+        [...AWAY, 5.3, T],
       ],
       [[GRAB, ...HELD]],
       [],
       wheel,
     )}`,
+      view,
     ),
   };
 }
@@ -415,6 +503,7 @@ const scenes = {};
       .slice(1)
       .map((d) => d.replace(/^M[\d.]+ [\d.]+/, ''))
       .join('');
+  const view = camera(1.45, 248, 38.6);
   const t = {
     dotIn: 0.3,
     dotFull: 0.5,
@@ -460,6 +549,7 @@ const scenes = {};
         ${tf('scale', [0, 0, 1, 1, 0, 0], [0, t.dotIn, t.dotFull, t.dotOut, t.dotGone, T], [HOLD, DECEL, HOLD, ACCEL, HOLD])}
       </circle>
     </g>`,
+      view,
     ),
   };
 }
@@ -472,8 +562,8 @@ const scenes = {};
     next = 3.0,
     gone = 5.3;
   // The next slide: the photo on the right, and the words on the left.
-  const slideB = (id) =>
-    `${outline()}${at(130, 15, 1, photo(id))}${bar(15, 23, 90, 10, '#c4c7c5')}${[84, 72, 80]
+  const slideB = (id, lines = [84, 72, 80]) =>
+    `${outline()}${at(130, 15, 1, photo(id))}${bar(15, 23, 90, 10, '#c4c7c5')}${lines
       .map((w, n) => bar(15, 53 + 12 * n, w, 6, '#e3e3e3'))
       .join('')}`;
   // Each slide shows until Next, and the next one after it, until the loop starts again.
@@ -489,23 +579,23 @@ const scenes = {};
     .join('\n      ');
   // Presenter view's Next, under its slide.
   const NEXT = [151, 115];
+  const view = camera(1.25, 250, 40);
   scenes['presenter-view'] = {
     still: 2.0,
     svg: frame(
       'presenter-view',
       `
     <!-- The slideshow, filling the screen. -->
-    ${at(140, 16, 1.1, slides(slide('presenter-view-a', 84, 72), slideB('presenter-view-b')))}
+    ${at(140, 16, 1.1, slides(slideB('presenter-view-a', [64, 80]), slideB('presenter-view-b')))}
     <!-- Presenter view, floating over it: the timer and its buttons, the slide and its notes. -->
     <g opacity="0" transform-origin="185 78">
       ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, shown, shown + 0.25, gone, gone + 0.25, T], [HOLD, FADE_IN, HOLD, FADE_OUT, HOLD])}
       ${tf('scale', [0.94, 0.94, 1, 1, 0.94, 0.94], [0, shown, shown + 0.35, gone, gone + 0.25, T], [HOLD, DECEL, HOLD, ACCEL, HOLD])}
-      <rect x="100" y="31" width="170" height="100" rx="10" fill="#000" opacity="0.12"/>
-      <rect x="100" y="28" width="170" height="100" rx="10" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+      <rect x="100" y="28" width="170" height="100" rx="10" fill="#fff" filter="url(#float)"/>
       ${ticks}
       ${bar(176, 40, 18, 6, '#c4c7c5')}${bar(198, 40, 18, 6, '#c4c7c5')}
       <path d="M101 56H269" stroke="#e3e3e3"/>
-      ${at(112, 64, 0.2988, slides(slide('presenter-view-c', 84, 72), slideB('presenter-view-d')))}
+      ${at(112, 64, 0.2988, slides(slideB('presenter-view-c', [64, 80]), slideB('presenter-view-d')))}
       <circle cx="129" cy="${NEXT[1]}" r="6" fill="#f0f4f9"/>${chevron(129, 1, NEXT[1]).replace('#e3e3e3', '#444746')}
       <circle cx="${NEXT[0]}" cy="${NEXT[1]}" r="6" fill="#f0f4f9"/>${chevron(NEXT[0], -1, NEXT[1]).replace('#e3e3e3', '#444746')}
       ${bar(194, 66, 64, 5, '#e3e3e3')}${bar(194, 76, 56, 5, '#e3e3e3')}${bar(194, 86, 60, 5, '#e3e3e3')}${bar(194, 96, 40, 5, '#e3e3e3')}
@@ -520,6 +610,7 @@ const scenes = {};
       [[HAND, 2.35, 3.45]],
       [next - 0.1],
     )}`,
+      view,
     ),
   };
 }
@@ -537,6 +628,7 @@ const scenes = {};
       start + i / 24,
     ]);
   const RESET = 7.55;
+  const view = camera(1.6, 105, 14);
   const ticks = [
     [900, 0],
     [899, 1.0],
@@ -581,15 +673,13 @@ const scenes = {};
       'timer',
       `
     <!-- Presenter view: the timer and its buttons along the top, the slide and its notes below. -->
-    <rect x="87" y="14" width="321" height="152" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+    <rect x="87" y="14" width="321" height="152" rx="12" fill="#fff" filter="url(#lift)"/>
     ${time}
     ${bar(105, 46, BAR, 4, '#dde3ea')}
     ${fill}
     <!-- Slides' Pause and Reset, as text buttons, then the timer's button. -->
     ${bar(200, 31, 30, 8, '#c4c7c5')}${bar(238, 31, 30, 8, '#c4c7c5')}
-    <circle cx="285" cy="35" r="10" fill="#f0f4f9"/>
-    <circle cx="285" cy="36" r="5" fill="none" stroke="#444746" stroke-width="1.5"/>
-    <path d="M283 29.5H287M285 34V36.5" stroke="#444746" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="285" cy="35" r="10" fill="#f0f4f9"/>${symbol('timer', 285, 35, 13, '#444746')}
     <path d="M88 54H407" stroke="#e3e3e3" stroke-width="1"/>
     ${at(103, 68, 0.55, slide('timer-a', 84, 72, 80))}
     ${bar(252, 72, 140, 6, '#e3e3e3')}${bar(252, 84, 128, 6, '#e3e3e3')}${bar(252, 96, 136, 6, '#e3e3e3')}${bar(252, 108, 92, 6, '#e3e3e3')}
@@ -606,6 +696,7 @@ const scenes = {};
       ],
       [RESET - 0.1],
     )}`,
+      view,
     ),
   };
   T = 6;
@@ -618,7 +709,8 @@ const scenes = {};
     widths = [0, 16, 32, 48, 64, 80];
   const shown = 2.9,
     reset = 5.4;
-  const typing = `<rect x="129" y="77" height="6" rx="3" fill="#c4c7c5" width="0">
+  const view = camera(1.1, 247, 90);
+  const typing = `<rect x="129" y="77" height="6" rx="3" fill="${PICKED_LINE}" width="0">
         ${step('width', [...widths, 0], [0, ...typed, reset + 0.3])}
         ${anim('opacity', [1, 1, 0, 0], [0, reset, reset + 0.3, T], [HOLD, STD_ACCEL, HOLD])}
       </rect>
@@ -633,23 +725,25 @@ const scenes = {};
       'edits',
       `
     <!-- The editor: a toolbar, the slides down the side, and the slide being edited. -->
-    <rect x="30" y="28" width="205" height="124" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+    <rect x="30" y="28" width="205" height="124" rx="12" fill="#fff" filter="url(#lift)"/>
     <path d="M31 46H234" stroke="#e3e3e3"/>
     ${bar(42, 34, 24, 6, '#c4c7c5')}${bar(72, 35, 18, 4, '#e3e3e3')}${bar(94, 35, 18, 4, '#e3e3e3')}${bar(116, 35, 18, 4, '#e3e3e3')}
     <rect x="40" y="56" width="22" height="13" rx="2" fill="#fff" stroke="#0b57d0" stroke-width="1.5"/>
-    <rect x="40" y="76" width="22" height="13" rx="2" fill="#fff" stroke="#c4c7c5"/>
-    <rect x="40" y="96" width="22" height="13" rx="2" fill="#fff" stroke="#c4c7c5"/>
+    <rect x="40" y="76" width="22" height="13" rx="2" fill="#f0f4f9"/>
+    <rect x="40" y="96" width="22" height="13" rx="2" fill="#f0f4f9"/>
     ${at(72, 61, 0.6473, `${slide('edits-a', 84, 72)}${typing}`)}
-    <!-- The slideshow, drawn as the other scenes draw one: it dissolves into the new version. -->
+    <!-- The slideshow, on its screen in front: it dissolves into the new version. -->
+    <rect x="246" y="24" width="230" height="137" rx="14" fill="#1f1f1f" filter="url(#float)"/>
     ${at(
       256,
       33.5,
       0.8714,
       `${slide('edits-b', 84, 72)}<g opacity="0">
       ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, shown, shown + 0.5, reset, reset + 0.3, T], [HOLD, DISSOLVE, HOLD, STD_ACCEL, HOLD])}
-      ${bar(129, 77, 80, 6, '#c4c7c5')}
+      ${bar(129, 77, 80, 6, PICKED_LINE)}
     </g>`,
     )}`,
+      view,
     ),
   };
 }
@@ -679,6 +773,7 @@ const scenes = {};
   const A = [214, 150],
     C = [406, 71];
   const CLICK = 2.5;
+  const shot = camera(1.3, 440, 40);
   // Each pupil, moved by where he looks.
   let eye = 0;
   const face = drawing.replace(/<circle class="slides-companion-pupil"([^>]*)\/>/g, (_, rest) => {
@@ -704,7 +799,7 @@ const scenes = {};
       'companion',
       `
     <!-- The editor: Slides' toolbar, and the slide under it. -->
-    <rect x="40" y="26" width="415" height="190" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+    <rect x="40" y="26" width="415" height="190" rx="12" fill="#fff" filter="url(#lift)"/>
     <rect x="52" y="36" width="391" height="48" rx="24" fill="#f0f4f9"/>
     ${icons([70, 98, 126])}<path d="M154 50V70M268 50V70" stroke="#c4c7c5"/>${icons([168, 196, 224])}${icons([282, 310])}
     ${bar(338, 56, 44, 8, '#c4c7c5')}
@@ -723,6 +818,7 @@ const scenes = {};
       [[HAND, 1.85, 4.1]],
       [CLICK],
     )}`,
+      shot,
     ),
   };
 }
@@ -735,15 +831,16 @@ const named = (svg) =>
     .replace(/url\(#([^)]+)\)/g, 'url(#slides-companion-illustration-$1)');
 // The moment to hold still on goes with each, as data-still.
 const markup = (svg, still) => named(svg).replace('<svg ', `<svg data-still="${still}" `);
+const entries = Object.entries(scenes)
+  .map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`)
+  .join('\n');
 fs.writeFileSync(
   OUT,
   `// Made by scripts/build-illustrations.mjs (npm run illustrations): change that, not this.
 // The illustration at the top of each feature's page in Settings (settings-dialog.js), by feature.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.illustrations = {
-${Object.entries(scenes)
-  .map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`)
-  .join('\n')}
+${entries}
 };
 `,
 );

@@ -230,7 +230,7 @@ test('opened while Slides is still loading, the illustration shows no pointer un
   arrive();
   await page.waitForLoadState('load', { timeout: 60_000 });
   // Spotlight holds on its photo on the stage, the pointer on Next.
-  await expect.poll(() => pointer(page)).toEqual({ visible: true, at: [240, 146] });
+  await expect.poll(() => pointer(page)).toEqual({ visible: true, at: [224, 142] });
 });
 
 test('↑ and ↓ go through the features, Home and End to the first and last, and Tab goes on into the page', async ({

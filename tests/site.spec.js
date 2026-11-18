@@ -35,13 +35,14 @@ test(
       expect(ids, file).toEqual([...new Set(ids)]);
       const count = (pattern) => (html.match(pattern) ?? []).length;
       expect(count(/class="slides-companion-body"/g), file).toBe(count(/class="(peek|icon)[ "]/g));
-      // A srcset lists its files with their widths, between commas. A link to a part of a page is
-      // to that page, and the site's folder is its home page.
+      // A srcset lists its files with their widths, between commas. A data: URL carries its file
+      // (the illustrations' shadows). A link to a part of a page is to that page, and the site's
+      // folder is its home page.
       const local = [...html.matchAll(/(src|href|poster|srcset)="([^"]+)"/g)]
         .flatMap(([, name, value]) =>
           name === 'srcset' ? value.split(',').map((part) => part.trim().split(' ')[0]) : [value],
         )
-        .filter((url) => !/^(https?:|#|mailto:)/.test(url))
+        .filter((url) => !/^(https?:|#|mailto:|data:)/.test(url))
         .map((url) => url.replace(/#.*$/, '').replace(/^\.\/$/, 'index.html'))
         // A page by its name, as GitHub Pages finds whats-new.html at /whats-new.
         .map((url) => (path.extname(url) ? url : `${url}.html`));
