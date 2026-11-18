@@ -242,11 +242,12 @@ a {
 }
 
 .button {
+  --h: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  padding: 0 26px;
+  height: var(--h);
+  padding-inline: 26px;
   border-radius: 999px;
   background: var(--ink);
   color: #fff;
@@ -273,9 +274,34 @@ a {
     transform 0.1s cubic-bezier(0.3, 0, 0.2, 1);
 }
 .button-small {
-  height: 32px;
-  padding: 0 14px;
+  --h: 32px;
+  padding-inline: 14px;
   font-size: 14px;
+}
+/* Every button's words sit with their capitals in its middle: the band from the baseline to the
+   capitals' tops, which every label has, whether or not a letter of it hangs below. A g's or a
+   y's tail hangs into the room under it, as in Apple's buttons and Google's, so buttons side by
+   side keep one baseline: centred on all its ink, Coming next would sit higher than Out now next
+   to it, and Play the film higher than Add to Chrome. Laid out by its line box, Google Sans Flex
+   puts its capitals 0.018em above the middle (its ascent less its descent is short of its cap
+   height), and Chrome, rounding the ascent and descent to whole pixels, 0.59px above at 17px:
+   labels without a descender looked high. text-box trims a label's box to exactly that band, so
+   centring the box centres the capitals, at any size and in any font. Where it isn't known
+   (Firefox), the words move down the 0.018em instead, by a clear border along the top, which the
+   buttons' own paddings don't undo. Here the buttons; the play button, the tabs and the bar's
+   links each do it where they're styled. */
+@supports (text-box: trim-both cap alphabetic) {
+  .button {
+    display: inline-block;
+    padding-top: calc((var(--h) - 1cap) / 2);
+    text-align: center;
+    text-box: trim-both cap alphabetic;
+  }
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .button {
+    border-top: 0.036em solid transparent;
+  }
 }
 
 /* ---- The bar at the top ---- */
@@ -555,9 +581,9 @@ a {
   gap: 4px;
 }
 .nav .button-small {
-  height: calc(var(--bar) - 2 * var(--bar-pad));
+  --h: calc(var(--bar) - 2 * var(--bar-pad));
   margin-left: auto;
-  padding: 0 18px;
+  padding-inline: 18px;
   font-size: 15px;
 }
 /* On a phone the name and the button come down a size, and on the narrowest only the icon stays,
@@ -568,7 +594,7 @@ a {
     font-size: 15px;
   }
   .nav .button-small {
-    padding: 0 14px;
+    padding-inline: 14px;
     font-size: 14px;
   }
 }
@@ -586,6 +612,18 @@ a {
   transition:
     color 0.2s,
     background-color 0.2s;
+}
+/* Their capitals in the middle of the pill, as the buttons' are, at the height it had. */
+@supports (text-box: trim-both cap alphabetic) {
+  .nav-links a {
+    padding-block: calc(8px + (1lh - 1cap) / 2);
+    text-box: trim-both cap alphabetic;
+  }
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .nav-links a {
+    padding-block: calc(8px + 0.018em) calc(8px - 0.018em);
+  }
 }
 @media (hover: hover) {
   .nav-links a:hover {
@@ -786,6 +824,17 @@ h1 {
 .play svg {
   width: 16px;
   fill: currentColor;
+}
+/* Its capitals in its middle, as the buttons' are, and the triangle's middle with them. */
+@supports (text-box: trim-both cap alphabetic) {
+  .play span {
+    text-box: trim-both cap alphabetic;
+  }
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .play {
+    border-top: 0.036em solid transparent;
+  }
 }
 .play-time {
   color: var(--ink-3);
@@ -1566,6 +1615,18 @@ h2 {
     color 0.2s,
     background-color 0.2s,
     box-shadow 0.2s;
+}
+/* Their capitals in their middle, as the buttons' are, at the height they had. */
+@supports (text-box: trim-both cap alphabetic) {
+  .tabs a {
+    padding-block: calc(7px + (1lh - 1cap) / 2);
+    text-box: trim-both cap alphabetic;
+  }
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .tabs a {
+    padding-block: calc(7px + 0.018em) calc(7px - 0.018em);
+  }
 }
 @media (hover: hover) {
   .tabs a:hover {
