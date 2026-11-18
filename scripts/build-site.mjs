@@ -20,23 +20,31 @@ import { pathToFileURL } from 'node:url';
 import { iconPlacement, peekingDrawing } from './build-brand.mjs';
 import { day, releasePages } from './changelog.mjs';
 import { blocks, html, inline } from './markdown.mjs';
+import { siteIllustrations } from './build-illustrations.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const SITE = path.join(ROOT, 'site');
 const OUT = path.join(ROOT, 'build/site');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 
-// Settings' illustrations, by feature, as the extension draws them, on the tiles' grey (style.css's
-// --paper) rather than Settings' blue-grey, so each sits on its tile without a frame. It's the
-// stylesheet's, so the two can't drift apart.
+// Settings' illustrations, by feature, as the extension draws them, and the site's own for what has
+// no page in Settings (Download image), drawn alike, on the tiles' grey (style.css's --paper)
+// rather than Settings' blue-grey, so each sits on its tile without a frame. It's the
+// stylesheet's, so the two can't drift apart. Nor do they keep the frame's rounded corners: the
+// card rounds its own, and the picture's top corners are in the middle of it.
 function illustrations() {
   const context = { globalThis: {} };
   context.globalThis = context;
   vm.runInNewContext(read('extension/illustrations.js'), context);
   return Object.fromEntries(
-    Object.entries(context.slidesCompanion.illustrations).map(([name, svg]) => [
+    Object.entries({
+      ...context.slidesCompanion.illustrations,
+      ...siteIllustrations(),
+    }).map(([name, svg]) => [
       name,
-      svg.replaceAll(/fill="#f0f4f9"/gi, 'style="fill: var(--paper)"'),
+      svg
+        .replaceAll(/fill="#f0f4f9"/gi, 'style="fill: var(--paper)"')
+        .replace(/(<clipPath id="[^"]+-frame"><rect [^>]*?) rx="28"/, '$1'),
     ]),
   );
 }

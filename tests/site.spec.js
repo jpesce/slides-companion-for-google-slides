@@ -211,8 +211,9 @@ test('the website’s companions look at the pointer', { tag: '@offline' }, asyn
   const iconsRight = await iconsAt();
   await page.mouse.move(0, 400);
   await expect.poll(async () => (await iconsAt()).every((x, i) => x < iconsRight[i])).toBe(true);
-  // Settings' illustrations are in the page, each once.
-  await expect(page.locator('.art > svg')).toHaveCount(3);
+  // The illustrations are in the page, each once: Settings' three, and the site's own for
+  // Download image.
+  await expect(page.locator('.art > svg')).toHaveCount(4);
   expect(errors).toEqual([]);
 });
 

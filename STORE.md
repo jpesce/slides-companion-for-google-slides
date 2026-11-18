@@ -15,7 +15,7 @@ Presenting in Google Slides™, with a little help. Show a picture up close, ope
 Slides Companion works on top of Slides’ own slideshow, so your videos, animations and clicker keep working. It’s free and open source, with no account and no servers: everything happens in your browser.
 
 🖼️ PICTURES UP CLOSE
-During a slideshow, click a picture to see it full screen, then go through the slide’s other pictures. While editing, select one and press Space. Right-click a picture to save the original.
+During a slideshow, click a picture to see it full screen, then go through the slide’s other pictures. While editing, select one and press Space. Right-click a picture to download the original.
 
 🔗 LINKS ON YOUR SLIDE
 Links open right over your slide, PDFs included. Press Esc and you’re back where you left off.
