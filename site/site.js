@@ -408,6 +408,65 @@
     { passive: true },
   );
 
+  // The rims catch the light from the mouse: the hero icon's and the bar's light leans toward the
+  // mouse's side, as a highlight on glass shifts when the glass is tilted (Apple's Liquid Glass,
+  // as an iPhone turns), rather than going round it like a lamp. It leans by how far the mouse is
+  // to one side of each one's middle, up to TILT degrees either way of where it rests (style.css's
+  // --turn: 0 is from above for the icon, from up and to the left for the bar). It follows a mouse
+  // or a pen only: a finger doesn't hover, and a tap would jerk the light about. It eases there
+  // rather than jumping, and back to rest when the mouse leaves the window. With reduced motion,
+  // the light stays put.
+  if (!still.matches && matchMedia('(hover: hover)').matches) {
+    const TILT = 40;
+    // How far to the side the mouse leans it most of the way (tanh: 76% of TILT this far out).
+    const REACH = 400;
+    const lit = [document.querySelector('.hero-icon'), document.querySelector('.nav-inner')]
+      .filter(Boolean)
+      .map((element) => ({ element, turn: 0, target: 0 }));
+    let mouse = null;
+    let frame = 0;
+    let then = 0;
+    const swing = (now) => {
+      const dt = Math.min(0.05, (now - then) / 1000);
+      then = now;
+      let moving = false;
+      for (const light of lit) {
+        const gap = light.target - light.turn;
+        light.turn =
+          Math.abs(gap) < 0.05 ? light.target : light.turn + gap * (1 - Math.exp(-dt / 0.12));
+        light.element.style.setProperty('--turn', `${light.turn.toFixed(2)}deg`);
+        moving ||= light.turn !== light.target;
+      }
+      frame = moving ? requestAnimationFrame(swing) : 0;
+    };
+    const aim = () => {
+      for (const light of lit) {
+        if (!mouse) light.target = 0;
+        else {
+          const { left, width } = light.element.getBoundingClientRect();
+          light.target = TILT * Math.tanh((mouse[0] - (left + width / 2)) / REACH);
+        }
+      }
+      if (!frame) {
+        then = performance.now();
+        frame = requestAnimationFrame(swing);
+      }
+    };
+    addEventListener(
+      'pointermove',
+      (event) => {
+        if (event.pointerType === 'touch') return;
+        mouse = [event.clientX, event.clientY];
+        aim();
+      },
+      { passive: true },
+    );
+    document.documentElement.addEventListener('pointerleave', () => {
+      mouse = null;
+      aim();
+    });
+  }
+
   // The film plays with its sound, as asked for, and shows its poster again when it ends. Only the
   // home page has it.
   const stage = document.querySelector('.stage');

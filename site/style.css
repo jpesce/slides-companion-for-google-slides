@@ -358,12 +358,21 @@ a {
   height: var(--bar);
   padding: 0 var(--bar-pad);
   border-radius: calc(var(--bar) / 2);
-  --rim: rgb(0 0 0 / 7%);
+  /* The rim is light, as light catching glass is, on the dark bar and the light one alike. Apple's
+     light bar draws a 7% dark hairline instead; on our near-white page it barely showed, and the
+     light turning round it (site.js) not at all. White alone vanishes on white, so a faint grey
+     outline (the box-shadow's first) holds the edge just outside it, and the white reads as the
+     glass's lit rim against it, and plainly over anything darker that scrolls beneath. A soft
+     glow inside the top edge (the second), as liquid-glass-react has, is the light in the glass
+     just under it. */
+  --rim: rgb(255 255 255 / 100%);
   color: var(--ink);
   background-color: rgb(255 255 255 / calc(72% * var(--lift)));
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / calc(10% * var(--lift))),
+    inset 0 1px 3px rgb(255 255 255 / calc(25% * var(--lift))),
     0 1px 2px rgb(0 0 0 / calc(4% * var(--lift))),
     3px 12px 32px -12px rgb(0 0 0 / calc(18% * var(--lift)));
   pointer-events: auto;
@@ -381,44 +390,61 @@ a {
   --lift: 1;
 }
 /* The rim: a hairline cut out of the rim's colour, each end's square a conic gradient from the
-   middle of its curve, faded out at the unlit corner, and the plain colour only between them, as
-   the colours are translucent and would add up where they overlapped. */
-.nav-inner::before {
-  --end: calc(var(--bar) / 2);
+   middle of its curve, faded out where the light's diagonal meets it, and the plain colour only
+   between them, as the colours are translucent and would add up where they overlapped. Both ends
+   share one gradient, faded at both points of the diagonal: each end shows only its own half of
+   the circle, so it was one fade each (the left end's lower corner, the right end's upper one),
+   and the pair still is wherever --turn leans them. --turn tilts the diagonal toward the mouse
+   (site.js); at 0 it's the light from up and to the left.
+
+   It's two bands, the outer one bright and the one inside it at half that, so the edge fades
+   inward as light through glass does: Apple's measured 35, 24 and 17 across the hairline's three
+   pixels at 3x, and react-glass-rim draws its rim the same way. Each is half a pixel wide where
+   there are two device pixels to the CSS one, the pair as wide as the single hairline was; on a
+   plain screen each takes a whole pixel, as half a one snapped differently at the top and the
+   bottom. */
+.nav-inner {
+  --band: 1px;
+}
+@media (min-resolution: 2dppx) {
+  .nav-inner {
+    --band: 0.5px;
+  }
+}
+.nav-inner::before,
+.nav-inner::after {
+  --size: calc(var(--bar) - 2 * var(--inset));
+  --end: calc(var(--size) / 2);
+  --glint: conic-gradient(
+    from var(--turn, 0deg) at var(--end) 50%,
+    color-mix(in srgb, var(--rim) 80%, transparent),
+    color-mix(in srgb, var(--rim) 60%, transparent) 15deg,
+    color-mix(in srgb, var(--rim) 30%, transparent) 30deg,
+    transparent 45deg,
+    color-mix(in srgb, var(--rim) 30%, transparent) 60deg,
+    color-mix(in srgb, var(--rim) 60%, transparent) 75deg,
+    color-mix(in srgb, var(--rim) 80%, transparent) 90deg,
+    var(--rim) 105deg 165deg,
+    color-mix(in srgb, var(--rim) 80%, transparent) 180deg,
+    color-mix(in srgb, var(--rim) 60%, transparent) 195deg,
+    color-mix(in srgb, var(--rim) 30%, transparent) 210deg,
+    transparent 225deg,
+    color-mix(in srgb, var(--rim) 30%, transparent) 240deg,
+    color-mix(in srgb, var(--rim) 60%, transparent) 255deg,
+    color-mix(in srgb, var(--rim) 80%, transparent) 270deg,
+    var(--rim) 285deg 345deg,
+    color-mix(in srgb, var(--rim) 80%, transparent)
+  );
   content: '';
   position: absolute;
-  inset: 0;
+  inset: var(--inset);
   z-index: -1;
-  padding: 1px;
-  border-radius: inherit;
+  padding: var(--band);
+  border-radius: calc(var(--bar) / 2 - var(--inset));
   background:
-    conic-gradient(
-        at var(--end) 50%,
-        var(--rim) 165deg,
-        color-mix(in srgb, var(--rim) 80%, transparent) 180deg,
-        color-mix(in srgb, var(--rim) 60%, transparent) 195deg,
-        color-mix(in srgb, var(--rim) 30%, transparent) 210deg,
-        transparent 225deg,
-        color-mix(in srgb, var(--rim) 30%, transparent) 240deg,
-        color-mix(in srgb, var(--rim) 60%, transparent) 255deg,
-        color-mix(in srgb, var(--rim) 80%, transparent) 270deg,
-        var(--rim) 285deg
-      )
-      left / var(--bar) 100% no-repeat,
-    conic-gradient(
-        at var(--end) 50%,
-        color-mix(in srgb, var(--rim) 80%, transparent),
-        color-mix(in srgb, var(--rim) 60%, transparent) 15deg,
-        color-mix(in srgb, var(--rim) 30%, transparent) 30deg,
-        transparent 45deg,
-        color-mix(in srgb, var(--rim) 30%, transparent) 60deg,
-        color-mix(in srgb, var(--rim) 60%, transparent) 75deg,
-        color-mix(in srgb, var(--rim) 80%, transparent) 90deg,
-        var(--rim) 105deg 345deg,
-        color-mix(in srgb, var(--rim) 80%, transparent)
-      )
-      right / var(--bar) 100% no-repeat,
-    linear-gradient(var(--rim), var(--rim)) center / calc(100% - 2 * var(--bar)) 100% no-repeat;
+    var(--glint) left / var(--size) 100% no-repeat,
+    var(--glint) right / var(--size) 100% no-repeat,
+    linear-gradient(var(--rim), var(--rim)) center / calc(100% - 2 * var(--size)) 100% no-repeat;
   /* The prefixed pair first, for browsers before the standard mask (Chrome before 120), which
      would otherwise fill the whole bar with the rim's gradient. */
   -webkit-mask:
@@ -428,8 +454,16 @@ a {
   mask:
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
-  opacity: var(--lift);
+  opacity: calc(var(--lift) * var(--strength));
   pointer-events: none;
+}
+.nav-inner::before {
+  --inset: 0px;
+  --strength: 1;
+}
+.nav-inner::after {
+  --inset: var(--band);
+  --strength: 0.5;
 }
 /* Over something dark, as the picture tool's black tile is, white glass would turn a grey
    smudge on it, so the bar turns to dark glass while it's there, as Apple's bar does over a dark
@@ -442,6 +476,8 @@ a {
   color: #fff;
   background-color: rgb(31 31 31 / 72%);
   box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0%),
+    inset 0 1px 3px rgb(255 255 255 / 6%),
     0 1px 2px rgb(0 0 0 / 20%),
     3px 12px 32px -12px rgb(0 0 0 / 50%);
 }
@@ -477,6 +513,8 @@ a {
   backdrop-filter: saturate(100%) blur(0);
   -webkit-backdrop-filter: saturate(100%) blur(0);
   box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0%),
+    inset 0 1px 3px rgb(255 255 255 / 0%),
     0 1px 2px rgb(0 0 0 / 0%),
     3px 12px 32px -12px rgb(0 0 0 / 0%);
   transition:
@@ -496,10 +534,12 @@ a {
     color 0.3s,
     --rim 0.3s;
 }
-.nav:not(.lifts) .nav-inner::before {
+.nav:not(.lifts) .nav-inner::before,
+.nav:not(.lifts) .nav-inner::after {
   transition: opacity 0.45s cubic-bezier(0.2, 0, 0, 1);
 }
-.nav:not(.docked) .nav-inner::before {
+.nav:not(.docked) .nav-inner::before,
+.nav:not(.docked) .nav-inner::after {
   opacity: 0;
   transition: opacity 0.18s cubic-bezier(0.4, 0, 0.6, 1) 0.08s;
 }
@@ -779,12 +819,17 @@ h1 {
    in icon.svg's 1080 units, so it's free to repaint as he looks about). Light is added, as
    Apple's is, the same on yellow as on his fur (plus-lighter); the shade is taken away, the same
    from every colour (difference with a dark grey takes its value off anything lighter). The
-   bar's round window has none: it isn't an app icon. */
+   bar's round window has none: it isn't an app icon. Every layer, and the fill's lighter top, turns
+   with --turn, so the light leans toward the mouse's side of the icon (site.js); at 0 it's above. */
 /* Lit from above, as the rim is: a little lighter at the top than at the bottom, our yellow at its
    middle (oklch 0.871 0.178 91.7). Apple's own fills step 0.03 to 0.09 in lightness from bottom to
    top; at that, our yellow washed out at the top, and it's the brand's, so this steps 0.025. */
 .hero-icon {
-  background: linear-gradient(oklch(0.884 0.174 93), oklch(0.859 0.181 90.4));
+  background: linear-gradient(
+    calc(180deg + var(--turn, 0deg)),
+    oklch(0.884 0.174 93),
+    oklch(0.859 0.181 90.4)
+  );
 }
 .rim {
   display: none;
@@ -816,6 +861,7 @@ h1 {
 /* The shade at the sides. */
 .hero-icon .rim::before {
   background: conic-gradient(
+    from var(--turn, 0deg),
     rgb(32 32 32 / 0%) 60deg,
     rgb(32 32 32 / 28.8%) 75deg,
     rgb(32 32 32 / 67.2%) 90deg,
@@ -834,6 +880,7 @@ h1 {
 /* The crisp band of light. */
 .hero-icon .rim::after {
   background: conic-gradient(
+    from var(--turn, 0deg),
     rgb(255 255 255 / 35.3%),
     rgb(255 255 255 / 30.8%) 15deg,
     rgb(255 255 255 / 17.1%) 30deg,
@@ -858,6 +905,7 @@ h1 {
 /* The soft glow under it. */
 .hero-icon::after {
   background: conic-gradient(
+    from var(--turn, 0deg),
     rgb(255 255 255 / 12.6%) 0deg 15deg,
     rgb(255 255 255 / 10.5%) 30deg,
     rgb(255 255 255 / 7%) 45deg,
