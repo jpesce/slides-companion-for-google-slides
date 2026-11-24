@@ -9,7 +9,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
     "chromium": "node scripts/chromium.mjs",
-    "demo": "node scripts/demo/stills.mjs && node scripts/demo/icon.mjs",
+    "demo": "node scripts/demo/stills.mjs && node scripts/demo/icon.mjs && node scripts/demo/features.mjs",
     "demo:finish": "node scripts/demo/sound.mjs && node scripts/demo/finish.mjs",
     "demo:screenshots": "node scripts/demo/screenshots.mjs",
     "demo:record": "node scripts/demo/record.mjs && node scripts/demo/ae.mjs",

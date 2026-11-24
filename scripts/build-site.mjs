@@ -260,7 +260,7 @@ const MEDIA = path.join(SITE, 'media');
 const FILM = path.join(ROOT, 'build/demo/slides-companion-demo.mp4');
 // The film's first frame of its own, a moment before a picture is clicked: the slide with three
 // pictures, the pointer on one. The tile under it shows that picture full screen.
-const POSTER_AT = 4.6;
+const POSTER_AT = 4.1;
 
 // Draws site/media/: each picture at its width on a wide screen, and twice that for screens with more
 // pixels, as WebP, which Chromium's canvas writes; the film's poster; and the film itself, from

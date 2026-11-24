@@ -1,5 +1,6 @@
 // The icon on the video's first and last screens, animated: the companion peeks up from the tile's
-// bottom edge as it arrives, then blinks, as he does in Slides' toolbar. On the last screen, his eyes
+// bottom edge as it arrives, then blinks, as he does in Slides' toolbar. On the last screen the icon
+// takes the features' tiles in first, and he bobs up a little as each pair goes in. On the last screen, his eyes
 // go down to "Free in the Chrome Web Store" behind that blink (a blink hides a change of gaze, which
 // is when the toolbar companion blinks too). Frames go to build/demo/stills/icon/<screen>/, 60 a
 // second, with transparency, for After Effects to put in place of a still icon.
@@ -13,14 +14,19 @@ import { STILLS } from './stills.mjs';
 const FPS = 60;
 // Twice the 128 px the tile shows at, so After Effects scales it down, never up.
 const SIZE = 256;
-// Each screen: how long it lasts, when the peek and the blink start (seconds), and where his pupils
-// look after the blink, as shares of the room each has (null: where the icon draws them, looking up).
+// Each screen: how long it lasts, when he bobs up a little (seconds), when the peek and the blink
+// start, and where his pupils look after the blink, as shares of the room each has (null: where the
+// icon draws them, looking up). The end screen starts as the icon appears among the features' tiles
+// in "Closing" (closing.jsx's GATHER): he hops as each of the first three pairs goes in, an
+// eighth note apart (its arrivals, less GATHER), and peeks on the last chord, as the last pair
+// does (LAND, less GATHER).
 const SCREENS = {
-  title: { duration: 2.6, peek: 0.3, blink: 1.45, look: null },
+  title: { duration: 2.6, bobs: [], peek: 0.3, blink: 1.45, look: null },
   end: {
-    duration: 3.4,
-    peek: 0.3,
-    blink: 1.4,
+    duration: 4.6,
+    bobs: [0.3, 0.6, 0.9],
+    peek: 1.2,
+    blink: 2.3,
     look: [
       [0.25, 0.85],
       [-0.15, 0.85],
@@ -31,6 +37,13 @@ const SCREENS = {
 const PEEK_FROM = 380;
 // The peek is a spring that overshoots a touch, so he settles like the toolbar companion does.
 const PEEK_SPRING = [11, 0.72];
+// A bob: a hop up and back down in HOP seconds (HOP_HEIGHT, a share of his way up), leaving him a
+// step higher (BOB, on a quick spring), so he edges up as the features go in. Small enough that
+// three, mid-hop, keep his eyes below the tile's edge for the peek.
+const BOB = 0.02;
+const BOB_SPRING = [38, 0.6];
+const HOP = 0.16;
+const HOP_HEIGHT = 0.045;
 // The blink, as the toolbar companion's (companion.js BLINK).
 const BLINK = { close: 80, hold: 17, open: 180, lowerLag: 17 };
 // His glance, as the toolbar companion's (companion.js SPRINGS.gaze).
@@ -99,8 +112,12 @@ function prepare(svg) {
 }
 
 function frame(screen, t) {
-  const { peek, blink, look } = SCREENS[screen];
-  const rise = spring(PEEK_SPRING, t - peek);
+  const { bobs, peek, blink, look } = SCREENS[screen];
+  const bobbed = bobs.reduce((sum, at) => {
+    const hop = t > at && t < at + HOP ? Math.sin((Math.PI * (t - at)) / HOP) : 0;
+    return sum + BOB * spring(BOB_SPRING, t - at) + HOP_HEIGHT * hop;
+  }, 0);
+  const rise = bobbed + (1 - BOB * bobs.length) * spring(PEEK_SPRING, t - peek);
   const ms = (t - blink) * 1000;
   const upper = shut(ms);
   const lower = shut(ms - BLINK.lowerLag);

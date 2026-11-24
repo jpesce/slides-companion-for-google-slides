@@ -8,7 +8,7 @@ import path from 'node:path';
 
 const OUT = path.resolve(import.meta.dirname, '../../build/demo/audio');
 const SR = 48000;
-const LENGTH = 47.7667; // the main comp's duration
+const LENGTH = 39.5; // the main comp's duration
 const N = Math.ceil(LENGTH * SR);
 const TAU = 2 * Math.PI;
 const FRAME = 1 / 60;
@@ -22,23 +22,27 @@ const PEAK = { click: -7, key: -9, grab: -10 };
 
 // Where each scene starts in the main comp. A scene's screen starts 0.3 s in, and the stage times
 // passed to at() are the ones set in each stage comp (clicks, key presses, changes on screen).
+// Two screens hold their first frame longer (a time remap in their scene comp), so the camera
+// settles before anything happens on them: the Timer's while it pushes in onto the toolbar, and
+// both of Live edits' while the camera moves in on the editor.
 const SCENE = {
   title: 0,
-  spotlight: 2.72,
-  links: 7.44,
-  zoom: 13.86,
-  pen: 20.28,
-  timer: 27.3,
-  notes: 33.62,
-  live: 38.64,
-  end: 44.36,
+  spotlight: 2.0,
+  links: 6.8,
+  zoom: 12.8,
+  timer: 18.8,
+  live: 23.6,
+  // "8 features in one extension": the features count up, then gather into the end card's icon.
+  more: 30.0,
+  end: 36.1,
 };
-const at = (scene, t) => SCENE[scene] + 0.3 + t;
+const HOLD = { timer: 0.2, live: 0.3 };
+const at = (scene, t) => SCENE[scene] + 0.3 + (HOLD[scene] ?? 0) + t;
 
-// Twenty bars from the title's first frame to the end card, so the last chord lands as the end
-// card appears: about 108 bpm.
+// Fifteen bars from the title's first frame to the end card: 100 bpm. The edit is cut to it, so
+// each scene's caption comes in on a strong beat and the last chord lands as the end card appears.
 const START = 0.1;
-const BEAT = (SCENE.end - START) / 80;
+const BEAT = (SCENE.end - START) / 60;
 const beat = (b) => START + b * BEAT;
 const SIXTEENTH = BEAT / 4;
 
@@ -389,35 +393,23 @@ const CHORDS = {
   Bm9: { root: 35, keys: [54, 57, 61, 62], high: [62, 66, 69, 71, 73] },
   'D9sus4 (C/D)': { root: 38, keys: [55, 57, 60, 64], high: [62, 64, 67, 69, 72] },
   'Bbmaj7#11/D': { root: 38, keys: [53, 57, 58, 64], high: [62, 65, 69, 70, 72] },
-  'Gm6/D': { root: 38, keys: [55, 58, 62, 64], high: [62, 64, 67, 69, 70] },
   Em9: { root: 28, keys: [55, 59, 62, 66], high: [62, 64, 66, 67, 71] },
   'Fmaj7#11': { root: 29, keys: [57, 59, 60, 64], high: [64, 65, 67, 69, 72] },
   'Gmaj7#11': { root: 31, keys: [57, 59, 61, 66], high: [62, 66, 67, 69, 71] },
   A9sus4: { root: 33, keys: [59, 62, 64, 67], high: [62, 64, 67, 69, 71] },
   'Bbmaj7#11': { root: 34, keys: [57, 58, 62, 64], high: [62, 65, 69, 70, 72] },
 };
-// The intro's two chords a bar each. Then, over a D pedal, the major chord darkens through chords
-// borrowed from D minor (C, Bb, Gm: I-bVII-bVI-iv) and comes home. Halfway, the bass climbs
-// E-F-G-A under parallel chords, and bVI-I closes on the end card. Two bars a chord, so it breathes.
-const PLAN = [
-  ['Dmaj9', 'Bm9'],
-  ...[
-    'D9sus4 (C/D)',
-    'Bbmaj7#11/D',
-    'Gm6/D',
-    'Dmaj9',
-    'Em9',
-    'Fmaj7#11',
-    'Gmaj7#11',
-    'A9sus4',
-    'Bbmaj7#11',
-  ].map((c) => [c, c]),
-  ['Dmaj9'],
-].flat();
-const BARS = 20; // then the final chord, on the end card
+// The title's chord for a bar, then Bm9 as the first scene comes in. Over a D pedal, the major
+// chord darkens through a chord borrowed from D minor (C: bVII). Then the bass climbs E-F-G-A
+// under parallel chords, and bVI-I closes on the end card. Two bars a chord, so it breathes.
+const TWO_BARS = ['D9sus4 (C/D)', 'Em9', 'Fmaj7#11', 'Gmaj7#11', 'A9sus4', 'Bbmaj7#11'];
+const PLAN = [['Dmaj9', 'Bm9', 'Bm9'], ...TWO_BARS.map((c) => [c, c]), ['Dmaj9']].flat();
+const BARS = 15; // then the final chord, on the end card
+// Where the bass starts to climb: the arpeggio thickens and the bell's tune comes in.
+const CLIMB = PLAN.indexOf('Em9');
 
 // The arpeggio, sparse so the echoes fill the gaps: sixteenth, tone, velocity. It thickens a
-// little halfway through.
+// little when the bass starts to climb.
 const SPARSE = [
   [0, 0, 1],
   [6, 2, 0.6],
@@ -467,7 +459,7 @@ function music() {
     const chord = CHORDS[PLAN[bar]];
     const intro = bar < 2;
     const last = bar === BARS;
-    const lift = bar >= 10 && !last;
+    const lift = bar >= CLIMB && !last;
     // The last beat before the end card is a breath: only the pad and the swell.
     const playing = (sixteenth) => !(bar === BARS - 1 && sixteenth >= 12);
     const barLength = last ? LENGTH - beat(bar * 4) : 4 * BEAT;
@@ -532,7 +524,8 @@ function music() {
       );
     }
     if (lift) {
-      for (const [b, tone, beats] of TUNE[bar % 4]) {
+      // The tune comes in on its last line, a pickup into the next bar.
+      for (const [b, tone, beats] of TUNE[(bar - CLIMB + 3) % 4]) {
         const note = chord.high[tone] + 12;
         place(parts.bell, beat(bar * 4 + b), beats * BEAT + 2, 0.7, 0.15, bell(hz(note)));
       }
@@ -555,9 +548,9 @@ function music() {
   const opening = [
     [0, 600],
     [beat(8), 850],
-    [beat(40), 1200],
-    [beat(72), 1700],
-    [beat(80), 1900],
+    [beat(34), 1200],
+    [beat(BARS * 4 - 8), 1700],
+    [beat(BARS * 4), 1900],
     [LENGTH, 1000],
   ];
   filter(parts.pad, 'low', (t) => {
@@ -702,8 +695,8 @@ function sfx() {
     peakDb: PEAK.grab - 3,
   });
 
-  // Keys: the arrow that turns the notes' page, then typing "129" into the editor.
-  for (const t of [at('notes', 2.7), at('live', 2.55), at('live', 2.8), at('live', 3.05)]) {
+  // Keys: typing "129" into the editor.
+  for (const t of [at('live', 2.55), at('live', 2.8), at('live', 3.05)]) {
     const sound = press(rng, KEY, {
       pitch: 0.95 + 0.1 * rng(),
       gap: 0.06,
