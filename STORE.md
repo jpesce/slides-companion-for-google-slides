@@ -55,7 +55,7 @@ The store's small promo tile (Store listing › Graphic assets), 440×280, is wh
 
 ## Marquee
 
-The marquee (Store listing › Graphic assets), 1400×560, is the banner the store's homepage carousel shows if it picks the extension, and it can't pick one without it. Ours is `brand/store-marquee.png`, the app icon beside the extension's name and the summary's words, on light grey, also made by `npm run brand`.
+The marquee (Store listing › Graphic assets), 1400×560, is the banner the store's homepage carousel shows if it picks the extension, and it can't pick one without it. Ours is `brand/store-marquee.png`, the app icon beside the extension's name and its tagline, "Google Slides™ presentations, enhanced.", on light grey, also made by `npm run brand`.
 
 ## Screenshots
 
