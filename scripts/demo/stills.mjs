@@ -5,13 +5,16 @@
 // - ui/: each state of the interface the video shows (Spotlight, a link's page, presenter view and
 //   its timer menu, floating notes, the editor as someone types), as screenshots at 4×, and ui.json:
 //   where each thing clicked is, in CSS pixels of its window, for the edit to move the pointer there.
+// - layers/: a screen in parts, for the edit to move each one (layers.mjs).
 // The edit draws the pointer and the motion between states; the extension's own motion is instant or
 // a short fade, which the edit rebuilds from spotlight.css.
-//   node scripts/demo/stills.mjs            (both; `slides` or `ui` for one)
+//   node scripts/demo/stills.mjs            (all three; `slides`, `ui` or `layers` for one)
 //   node scripts/demo/stills.mjs ui live    (one part of ui/: spotlight, links, timer, notes, live)
+//   node scripts/demo/stills.mjs layers timer
 import fs from 'node:fs';
 import path from 'node:path';
 import { SLIDES, LIVE_NUMBER } from './deck.mjs';
+import { layers } from './layers.mjs';
 import {
   DECK,
   NOTES_WINDOW,
@@ -405,6 +408,7 @@ export async function ui(only) {
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   const [only, part] = process.argv.slice(2);
-  if (only !== 'ui') await slides();
-  if (only !== 'slides') await ui(part);
+  if (!only || only === 'slides') await slides();
+  if (!only || only === 'ui') await ui(part);
+  if (!only || only === 'layers') await layers(part);
 }
