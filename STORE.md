@@ -91,4 +91,4 @@ The README plays a lighter copy, `build/demo/slides-companion-demo-readme.mp4`, 
 
 **Data usage:** collects no user data.
 
-**Privacy policy:** https://github.com/jpesce/slides-companion-for-google-slides/blob/main/PRIVACY.md
+**Privacy policy:** https://slidescompanion.pesce.cc/privacy
