@@ -278,15 +278,19 @@ const appIcon = (x, y, size) => {
 const promoTile = () =>
   `<svg ${SVG} width="440" height="280" viewBox="0 0 440 280"><rect width="440" height="280" fill="${PAPER}"/>${appIcon(136, 52, 168)}</svg>\n`;
 
+// The tagline names Google Slides™ as what it enhances, never on its own as if it were our
+// product's name, as Google's trademark guidelines ask: the name as an adjective, with the ™.
+const TAGLINE = 'Google Slides™ presentations, enhanced.';
+
 // The store's marquee, 1400×560, for the carousel at the top of its homepage if the extension is
-// picked for it: the icon beside his name and what he does.
+// picked for it: the icon beside his name and the tagline.
 const marquee = () =>
-  `<svg ${SVG} width="1400" height="560" viewBox="0 0 1400 560">${FONT}<rect width="1400" height="560" fill="${PAPER}"/>${appIcon(232, 160, 240)}<text x="536" y="276" font-size="80" font-weight="500" letter-spacing="-0.96">Slides Companion</text><text x="538" y="332" font-size="36" fill="#444746">Free presenter tools for Google Slides™</text></svg>\n`;
+  `<svg ${SVG} width="1400" height="560" viewBox="0 0 1400 560">${FONT}<rect width="1400" height="560" fill="${PAPER}"/>${appIcon(232, 160, 240)}<text x="536" y="276" font-size="80" font-weight="500" letter-spacing="-0.96">Slides Companion</text><text x="538" y="332" font-size="36" fill="#444746">${TAGLINE}</text></svg>\n`;
 
 // GitHub's social preview, 1280×640, for links to the repository: the icon above his name and the
-// store summary's words.
+// tagline.
 const socialPreview = () =>
-  `<svg ${SVG} width="1280" height="640" viewBox="0 0 1280 640">${FONT}<rect width="1280" height="640" fill="${PAPER}"/>${appIcon(540, 116, 200)}<text x="640" y="446" text-anchor="middle" font-size="96" font-weight="500" letter-spacing="-1.15">Slides Companion</text><text x="640" y="512" text-anchor="middle" font-size="42" fill="#444746">Free presenter tools for Google Slides™</text></svg>\n`;
+  `<svg ${SVG} width="1280" height="640" viewBox="0 0 1280 640">${FONT}<rect width="1280" height="640" fill="${PAPER}"/>${appIcon(540, 116, 200)}<text x="640" y="446" text-anchor="middle" font-size="96" font-weight="500" letter-spacing="-1.15">Slides Companion</text><text x="640" y="512" text-anchor="middle" font-size="42" fill="#444746">${TAGLINE}</text></svg>\n`;
 
 // Every picture, by its file in brand/.
 export const svgs = () => ({
