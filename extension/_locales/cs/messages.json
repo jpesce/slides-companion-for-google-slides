@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: časovač, lupa a poznámky řečníka pro Prezentace Google™" },
-  "extensionDescription": { "message": "Bezplatné nástroje pro prezentující v Prezentacích Google™: obrázky zblízka, odkazy přímo na snímku, odpočet a plovoucí poznámky." },
+  "extensionDescription": { "message": "Prezentace v Prezentacích Google™, vylepšené a zdarma: obrázky zblízka, odkazy přímo na snímku, odpočet a plovoucí poznámky." },
   "settingsLabel": { "message": "Nastavení Slides Companion" },
 
   "spotlightMenuItem": { "message": "Zobrazit zblízka" },

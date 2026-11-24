@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: Google Slides™용 타이머, 확대/축소, 발표자 노트" },
-  "extensionDescription": { "message": "Google Slides™용 무료 발표 도구: 이미지 크게 보기, 슬라이드 위에서 링크 열기, 카운트다운, 플로팅 노트." },
+  "extensionDescription": { "message": "Google Slides™ 프레젠테이션을 더 좋게, 무료로: 이미지 크게 보기, 슬라이드 위에서 링크 열기, 카운트다운, 플로팅 노트." },
   "settingsLabel": { "message": "Slides Companion 설정" },
 
   "spotlightMenuItem": { "message": "스포트라이트로 보기" },

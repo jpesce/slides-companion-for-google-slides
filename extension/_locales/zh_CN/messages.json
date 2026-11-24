@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion：适用于 Google 幻灯片™ 的定时器、缩放和演讲者备注" },
-  "extensionDescription": { "message": "适用于 Google 幻灯片™ 的免费演示工具：近距离查看图片、在幻灯片上打开链接、倒计时和浮动备注。" },
+  "extensionDescription": { "message": "让 Google 幻灯片™ 演示更出色，而且免费：近距离查看图片、在幻灯片上打开链接、倒计时和浮动备注。" },
   "settingsLabel": { "message": "Slides Companion 设置" },
 
   "spotlightMenuItem": { "message": "聚焦显示图片" },

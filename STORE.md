@@ -4,7 +4,7 @@ The text for the [Chrome Web Store dashboard](https://chrome.google.com/webstore
 
 ## Name and summary
 
-Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription` ("Free presenter tools for Google Slides™: pictures up close, links on your slide, a countdown and notes that float on top."), which the store shows beside the name in search, on its homepage and on category pages. A test keeps each within Chrome's limits (75 and 132 characters).
+Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription` ("Google Slides™ presentations, enhanced, for free: pictures up close, links on your slide, a countdown and notes that float on top."), which the store shows beside the name in search, on its homepage and on category pages. A test keeps each within Chrome's limits (75 and 132 characters).
 
 The store finds extensions mostly by the words in their name. So after our own name, it carries the most-searched words of our niche, then Google Slides' name in each language, after "for" and marked ™, as Google's branding rules ask.
 
@@ -65,9 +65,9 @@ The store needs at least one screenshot and takes five (Store listing › Graphi
 
 The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo:finish` from the After Effects edit ([CONTRIBUTING.md](CONTRIBUTING.md#pictures-and-the-demo-video) says how to bring it up to date).
 
-1. Upload it to YouTube, as Public or Unlisted (the store plays either), with the title "Slides Companion: presenter tools for Google Slides™" and this description:
+1. Upload it to YouTube, as Public or Unlisted (the store plays either), with the title "Slides Companion: Google Slides™ presentations, enhanced" and this description:
 
-   > Free presenter tools for Google Slides™: see pictures up close, open links over your slide, zoom in, keep your drawings, count down in presenter view, float your notes on top and edit the deck while it's on screen. https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd
+   > Google Slides™ presentations, enhanced, for free: see pictures up close, open links over your slide, zoom in, keep your drawings, count down in presenter view, float your notes on top and edit the deck while it's on screen. https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd
 
 2. Paste its link into the field.
 

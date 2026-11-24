@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: Google Slides™ के लिए टाइमर, ज़ूम और स्पीकर नोट" },
-  "extensionDescription": { "message": "Google Slides™ में प्रज़ेंट करने के लिए मुफ़्त टूल: तस्वीरें पास से, स्लाइड पर ही लिंक, उलटी गिनती और फ़्लोटिंग नोट." },
+  "extensionDescription": { "message": "Google Slides™ प्रज़ेंटेशन, अब और बेहतर, मुफ़्त में: तस्वीरें पास से, स्लाइड पर ही लिंक, उलटी गिनती और फ़्लोटिंग नोट." },
   "settingsLabel": { "message": "Slides Companion की सेटिंग" },
 
   "spotlightMenuItem": { "message": "इमेज को स्पॉटलाइट करें" },

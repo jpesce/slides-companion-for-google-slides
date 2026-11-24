@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: Google Slaytlar™ için zamanlayıcı, zum, konuşmacı notları" },
-  "extensionDescription": { "message": "Google Slaytlar™ için ücretsiz sunucu araçları: resimler yakından, slayt üzerinde bağlantılar, geri sayım ve kayan notlar." },
+  "extensionDescription": { "message": "Google Slaytlar™ sunumlarınız, daha iyi ve ücretsiz: resimler yakından, slayt üzerinde bağlantılar, geri sayım ve kayan notlar." },
   "settingsLabel": { "message": "Slides Companion ayarları" },
 
   "spotlightMenuItem": { "message": "Resmi spot ışığında göster" },

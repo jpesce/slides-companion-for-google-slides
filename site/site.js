@@ -461,7 +461,7 @@
           if (!navigator.share) throw new Error('No share sheet');
           await navigator.share({
             title: 'Slides Companion',
-            text: 'Slides Companion, free presenter tools for Google Slides. Add it to Chrome on your computer:',
+            text: 'Slides Companion: Google Slides presentations, enhanced, for free. Add it to Chrome on your computer:',
             url,
           });
         } catch (error) {

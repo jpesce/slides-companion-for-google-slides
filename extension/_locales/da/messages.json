@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: timer, zoom og præsentationsnoter til Google Slides™" },
-  "extensionDescription": { "message": "Gratis præsentationsværktøjer til Google Slides™: billeder helt tæt på, links på dit dias, nedtælling og svævende noter." },
+  "extensionDescription": { "message": "Præsentationer i Google Slides™, forbedret og gratis: billeder helt tæt på, links på dit dias, nedtælling og svævende noter." },
   "settingsLabel": { "message": "Indstillinger for Slides Companion" },
 
   "spotlightMenuItem": { "message": "Vis i Spotlight" },

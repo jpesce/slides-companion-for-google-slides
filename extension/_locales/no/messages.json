@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: tidtaker, zoom, foredragsnotater – Google Presentasjoner™" },
-  "extensionDescription": { "message": "Gratis verktøy for foredragsholdere i Google Presentasjoner™: bilder tett på, lenker på lysbildet, nedtelling og flytende notater." },
+  "extensionDescription": { "message": "Bedre foredrag i Google Presentasjoner™, gratis: bilder tett på, lenker på lysbildet, nedtelling og flytende notater." },
   "settingsLabel": { "message": "Innstillinger for Slides Companion" },
 
   "spotlightMenuItem": { "message": "Vis i Spotlight" },

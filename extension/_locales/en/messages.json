@@ -8,8 +8,8 @@
     "description": "The extension's full name in Chrome and the Web Store, where people search by name: our name (as extensionName), then what it does, with the words people search for and Google Slides' own name in this language, marked ™ as Google asks. 75 characters at most."
   },
   "extensionDescription": {
-    "message": "Free presenter tools for Google Slides™: pictures up close, links on your slide, a countdown and notes that float on top.",
-    "description": "The extension's one-line description: the Web Store shows it beside the name in search, on its homepage and on category pages, and Chrome on its Extensions page. What it is, then its main tools, in the words Settings uses for them, with Google Slides' name in this language marked ™ as Google asks. 132 characters at most."
+    "message": "Google Slides™ presentations, enhanced, for free: pictures up close, links on your slide, a countdown and notes that float on top.",
+    "description": "The extension's one-line description: the Web Store shows it beside the name in search, on its homepage and on category pages, and Chrome on its Extensions page. What it does (Google Slides™ presentations, enhanced, for free), then its main tools, in the words Settings uses for them, with Google Slides' name in this language marked ™ as Google asks. 132 characters at most."
   },
   "settingsLabel": {
     "message": "Slides Companion settings",

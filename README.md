@@ -7,7 +7,7 @@
   <a href="https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd" target="_blank"><img width="160" src="https://github.com/user-attachments/assets/b980234b-a7fa-4f31-82cb-61b7c5dcc85f" alt="Available in the Chrome Web Store"/></a>
 </p>
 
-Free presenter tools for Google Slides™, in an extension for Chrome-based browsers. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd), and see what it does and what's new on [its website](https://slidescompanion.pesce.cc/).
+Google Slides™ presentations, enhanced, for free. It's an extension for Chrome-based browsers that works on top of Slides' own slideshow, so your videos, animations and clicker keep working. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd), and see what it does and what's new on [its website](https://slidescompanion.pesce.cc/).
 
 https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 

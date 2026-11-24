@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: temporizador, zoom y notas del orador para Google Slides™" },
-  "extensionDescription": { "message": "Herramientas gratis para presentar en Google Slides™: imágenes de cerca, enlaces en pantalla, cuenta atrás y notas flotantes." },
+  "extensionDescription": { "message": "Presentaciones en Google Slides™, mejoradas y gratis: imágenes de cerca, enlaces en pantalla, cuenta atrás y notas flotantes." },
   "settingsLabel": { "message": "Configuración de Slides Companion" },
 
   "spotlightMenuItem": { "message": "Destacar imagen" },

@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: timer, zoom och stödanteckningar – Google Presentationer™" },
-  "extensionDescription": { "message": "Gratis verktyg för presentatörer i Google Presentationer™: stora bilder, länkar på bilden, nedräkning och flytande anteckningar." },
+  "extensionDescription": { "message": "Bättre presentationer i Google Presentationer™, gratis: stora bilder, länkar på bilden, nedräkning och flytande anteckningar." },
   "settingsLabel": { "message": "Inställningar för Slides Companion" },
 
   "spotlightMenuItem": { "message": "Visa i Spotlight" },

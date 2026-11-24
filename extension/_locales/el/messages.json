@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: χρονόμετρο, ζουμ & σημειώσεις ομιλητή για Google Slides™" },
-  "extensionDescription": { "message": "Δωρεάν εργαλεία παρουσιαστή για Google Slides™: εικόνες από κοντά, σύνδεσμοι επιτόπου, αντίστροφη μέτρηση, αιωρούμενες σημειώσεις." },
+  "extensionDescription": { "message": "Παρουσιάσεις στο Google Slides™, βελτιωμένες και δωρεάν: εικόνες από κοντά, σύνδεσμοι επιτόπου, αντίστροφη μέτρηση, σημειώσεις." },
   "settingsLabel": { "message": "Ρυθμίσεις Slides Companion" },
 
   "spotlightMenuItem": { "message": "Επισήμανση εικόνας" },

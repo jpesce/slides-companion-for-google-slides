@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: Timer, Zoom & Vortragsnotizen für Google Präsentationen™" },
-  "extensionDescription": { "message": "Kostenlose Tools für Vortragende in Google Präsentationen™: Bilder ganz nah, Links auf der Folie, Countdown und schwebende Notizen." },
+  "extensionDescription": { "message": "Vorträge in Google Präsentationen™, verbessert und kostenlos: Bilder ganz nah, Links auf der Folie, Countdown, schwebende Notizen." },
   "settingsLabel": { "message": "Einstellungen für Slides Companion" },
 
   "spotlightMenuItem": { "message": "Bild im Spotlight anzeigen" },

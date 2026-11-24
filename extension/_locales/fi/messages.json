@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion: ajastin, zoomaus, puhujan muistiinpanot – Google Slides™" },
-  "extensionDescription": { "message": "Ilmaisia esittäjän työkaluja Google Slides™ -palveluun: kuvat lähempää, linkit dialla, lähtölaskenta ja kelluvat muistiinpanot." },
+  "extensionDescription": { "message": "Paremmat Google Slides™ -esitykset ilmaiseksi: kuvat lähempää, linkit dialla, lähtölaskenta ja kelluvat muistiinpanot." },
   "settingsLabel": { "message": "Slides Companionin asetukset" },
 
   "spotlightMenuItem": { "message": "Näytä valokeilassa" },

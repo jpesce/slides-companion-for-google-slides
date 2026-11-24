@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion：Google 簡報™ 專用的計時器、縮放與演講者備忘稿" },
-  "extensionDescription": { "message": "Google 簡報™ 專用的免費簡報者工具：近看圖片、直接在投影片上開啟連結、倒數計時和浮動備忘稿。" },
+  "extensionDescription": { "message": "讓 Google 簡報™ 的簡報更出色，而且免費：近看圖片、直接在投影片上開啟連結、倒數計時和浮動備忘稿。" },
   "settingsLabel": { "message": "Slides Companion 設定" },
 
   "spotlightMenuItem": { "message": "聚焦顯示圖片" },

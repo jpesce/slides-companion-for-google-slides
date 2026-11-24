@@ -14,6 +14,8 @@
 
 3 is small and safe; 1 and 2 are the idea, and go together.
 
+**Also:** the title card still says "Presenter tools for Google Slides" under the name (the demo deck's subtitle in `scripts/demo/deck.mjs`, the recording's in `scripts/demo/record.mjs`, and "0 Title" in the After Effects project). Say "Google Slides™ presentations, enhanced." there, the tagline everything else now uses, when the film is rendered again.
+
 **Done when:**
 - [ ] The maintainer has picked which of these to do.
 - [ ] Each one picked is prototyped in HTML first, then built in After Effects.

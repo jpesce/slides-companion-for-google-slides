@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "Slides Companion" },
   "storeName": { "message": "Slides Companion : minuteur, zoom et notes de l’orateur pour Google Slides™" },
-  "extensionDescription": { "message": "Outils gratuits pour présenter dans Google Slides™ : images en grand, liens sur la diapo, compte à rebours, commentaires flottants." },
+  "extensionDescription": { "message": "Vos présentations Google Slides™ améliorées, gratuitement : images en grand, liens sur la diapo, compte à rebours, notes flottantes." },
   "settingsLabel": { "message": "Paramètres de Slides Companion" },
 
   "spotlightMenuItem": { "message": "Afficher en mode Pleins feux" },
