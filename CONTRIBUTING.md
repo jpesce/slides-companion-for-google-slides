@@ -104,7 +104,8 @@ Every card states the presenter's problem, the evidence that people need it, the
 
 ## Commits and pull requests
 
-- One commit per card, deleting the card in the same commit. Start the subject with the card's number ("Card 330: …"), keep it short, and put the detail in the body.
+- One commit per card, deleting the card in the same commit.
+- Write the message as a [Conventional Commit](https://www.conventionalcommits.org/): a short subject like `feat(timer): fill a bar under the countdown as the time goes`, the detail in the body, and the card's number on a line of its own at the end, `Card: 330`, so `git log --grep "Card: 330"` finds it. `feat` and `fix` are for what presenters notice, in the extension or on the website; `docs`, `test`, `refactor`, `style`, `ci` and `build` as the convention defines them; `chore(board)` for the board, and `chore(demo)` and `chore(brand)` for the film and the pictures.
 - For every change presenters will notice, add a line to [CHANGELOG.md](CHANGELOG.md), from their side.
 - For UI, include screenshots of yours next to the Slides component it mirrors, in light and dark.
 
