@@ -310,7 +310,7 @@ export function build() {
     },
     { insertText: { objectId: 'i0', text: 'Slides Companion' } },
     style('i0', { color: 'ACCENT3' }),
-    { insertText: { objectId: 'i1', text: 'Presenter tools for Google Slides' } },
+    { insertText: { objectId: 'i1', text: 'Google Slides™ presentations, enhanced.' } },
     style('i1', { size: 24, color: 'ACCENT3' }),
   );
 

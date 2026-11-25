@@ -747,7 +747,7 @@ export async function record() {
     const story = [
       {
         name: 'title',
-        card: { title: 'Slides Companion', subtitle: 'Presenter tools for Google Slides' },
+        card: { title: 'Slides Companion', subtitle: 'Google Slides™ presentations, enhanced.' },
         duration: 2.8,
       },
     ];
