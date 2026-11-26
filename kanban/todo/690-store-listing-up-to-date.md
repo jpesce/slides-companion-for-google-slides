@@ -15,6 +15,8 @@ Only the maintainer can do this (it's their dashboard), so this card is the chec
 
 **Progress (25 November 2026):** the new film is on YouTube, with the title card (eyes open) as its thumbnail: https://youtu.be/RIkkW6QDaOY. The listing's files are gathered in `build/store-upload/`. Chrome won't let any extension script the store's dashboard, so the maintainer does it by hand.
 
+**Submitted (26 November 2026):** v1.0.0's zip, the new description, graphics, links and permission justifications went in for review, to publish automatically once approved. The card is done when the listing shows v1.0.0.
+
 **Done when:**
 - [ ] The store shows the next release, with the new summary.
 - [ ] The promo tile, marquee, screenshots and new video are on the listing.
