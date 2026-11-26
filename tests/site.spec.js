@@ -299,14 +299,21 @@ test(
     const alive = await centres(page, hero);
     expect(alive.canvas[0]).toBeCloseTo(alive.bun[0], 0);
     expect(alive.canvas[1]).toBeCloseTo(alive.bun[1], 0);
+    // The hand shows he can be pressed over him, not in his box's empty corner.
+    const { x, y, width, height } = alive.host;
+    await page.mouse.move(x + 2, y + 2);
+    await expect(page.locator(hero)).toHaveCSS('cursor', 'auto');
+    await page.mouse.move(x + width / 2, y + height * 0.4);
+    await expect(page.locator(hero)).toHaveCSS('cursor', 'pointer');
     // His context lost (the graphics driver reset, or the browser reclaimed it), the drawing is
-    // back where he was, the same size, and follows the pointer again.
+    // back where he was, the same size, without his hand, and follows the pointer again.
     await page.evaluate((selector) => {
       const canvas = document.querySelector(`${selector} canvas`);
       canvas.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext();
     }, hero);
     await expect(page.locator(`${hero} canvas`)).toHaveCount(0);
     await expect(page.locator(`${hero} svg`)).toBeVisible();
+    await expect(page.locator(hero)).toHaveCSS('cursor', 'auto');
     const svg = await page.locator(`${hero} svg`).boundingBox();
     for (const side of ['x', 'y', 'width', 'height'])
       expect(svg[side], side).toBeCloseTo(alive.host[side], 0);

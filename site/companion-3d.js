@@ -92,7 +92,22 @@ const TICKLE = { within: 500, shake: 2.2, most: 4, longer: 900, spring: [26, 0.2
 const CONTENT = { after: 1.2, forget: 0.5, lean: 0.1, bliss: 0.85, spring: [6, 1] };
 // The mouse gone from the window `after` ms, he looks about for it, a new place every `every` ms;
 // when it's back, he's glad: a little hop (`hop`) and a quick smile (`smile` of one, for `hold`).
-const MISSED = { after: 2500, every: 1300, hop: 1.6, smile: 0.8, hold: 420 };
+// Glad at most once every `again` ms: someone in and out of the window would tire of it. Back
+// sooner, he only blinks.
+const MISSED = { after: 4000, every: 1300, hop: 1.6, smile: 0.8, hold: 420, again: 90000 };
+// The mouse coming near him (within `near` of his radii of his middle) for the first time, or
+// after `forget` ms away, he notices it: a start, stretching up (`stretch`, on the squash's
+// spring) with a little hop (`hop`), and a blink `blink` ms later, as a double take. Not before
+// he's been up `after` ms.
+const NOTICE = { near: 2.4, forget: 45000, stretch: 14, hop: 1.4, blink: 300, after: 1200 };
+// No two clicks quite alike: the hop, the ripple and how long the smile lasts each vary by up to
+// `by` of themselves; one first click in five (`wink`) is a wink, one eye smiling shut and the
+// other only squinting (`open` of the smile); one in two (`tilt`) tips his head, gladly, one way
+// or the other (`tip`, radians a second, on the tickle's spring).
+const VARY = { by: 0.25, wink: 0.2, open: 0.15, tilt: 0.5, tip: 1.4 };
+// Where he can be pointed at and pressed: inside his outline and `fur` of the way up his spikes,
+// and for a finger, `finger` of his radius further. Not the empty corners of his box.
+const HIT = { fur: 0.5, finger: 0.15 };
 // A pupil darting fast stretches along its way, as an animator draws a smear.
 const SMEAR = { from: 2, span: 8, most: 0.35 };
 // The drawing's eye edge wobbles up to 7.5% past its oval: the white is drawn that much bigger
@@ -747,6 +762,12 @@ export function companion3d(host, { look = null, onStop } = {}) {
   // he's looking for it.
   let missing = 0;
   let searching = false;
+  let lastGlad = -Infinity;
+  // When the mouse was last near him, for noticing it; and which eye stays open in a wink.
+  let lastNear = -Infinity;
+  let wink = -1;
+  const vary = (x) => x * (1 + VARY.by * (2 * Math.random() - 1));
+  const either = () => (Math.random() < 0.5 ? 1 : -1);
   const listening = new AbortController();
   const { signal } = listening;
 
@@ -786,7 +807,13 @@ export function companion3d(host, { look = null, onStop } = {}) {
     pressedAt = performance.now();
     giggles = pressedAt - lastPress < TICKLE.within ? giggles + 1 : 0;
     lastPress = pressedAt;
-    if (giggles) tilt.v += (giggles % 2 ? 1 : -1) * TICKLE.shake * Math.min(giggles, TICKLE.most);
+    if (giggles) {
+      tilt.v += (giggles % 2 ? 1 : -1) * TICKLE.shake * Math.min(giggles, TICKLE.most);
+      wink = -1;
+    } else {
+      wink = Math.random() < VARY.wink ? (either() > 0 ? 0 : 1) : -1;
+      if (Math.random() < VARY.tilt) tilt.v += either() * vary(VARY.tip);
+    }
     blinks = [];
     tune(squash, SPRINGS.press);
     tune(joy, SPRINGS.press);
@@ -794,7 +821,13 @@ export function companion3d(host, { look = null, onStop } = {}) {
     wake();
   };
   const ruffled = (event) => {
-    ruffle = { x: event.clientX, y: event.clientY, age: 0, reached: new Uint8Array(FUR.spikes) };
+    ruffle = {
+      x: event.clientX,
+      y: event.clientY,
+      kick: vary(RUFFLE.kick),
+      age: 0,
+      reached: new Uint8Array(FUR.spikes),
+    };
   };
   const smiled = () => {
     tune(joy, JOY.open);
@@ -808,18 +841,18 @@ export function companion3d(host, { look = null, onStop } = {}) {
     releaseTimer = setTimeout(() => {
       tune(squash, SPRINGS.release);
       squash.target = 0;
-      hop.v += HOP.kick;
+      hop.v += vary(HOP.kick);
       wake();
       joyTimer = setTimeout(
         smiled,
-        JOY.hold + (TICKLE.longer * Math.min(giggles, TICKLE.most)) / TICKLE.most,
+        vary(JOY.hold) + (TICKLE.longer * Math.min(giggles, TICKLE.most)) / TICKLE.most,
       );
     }, wait);
   };
   host.addEventListener(
     'pointerdown',
     (event) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || !over(event)) return;
       press();
       ruffled(event);
     },
@@ -836,29 +869,58 @@ export function companion3d(host, { look = null, onStop } = {}) {
     },
     { signal },
   );
-  for (const [type, target] of [
-    ['pointerenter', 1],
-    ['pointerleave', 0],
-  ])
-    host.addEventListener(
-      type,
-      () => {
-        interest.target = target;
-        wake();
-      },
-      { signal },
-    );
+  // Whether a pointer is on him, by his outline as last drawn (HIT): before his first frame, his
+  // box.
+  const over = ({ clientX, clientY, pointerType }) => {
+    const { ready, cx, cy, roll, size, r } = spikes.hit;
+    const rect = canvas.getBoundingClientRect();
+    if (!ready || !rect.width) return true;
+    const x = ((clientX - rect.left) / rect.width - 0.5) * canvas.width - cx;
+    const y = (0.5 - (clientY - rect.top) / rect.height) * canvas.height - cy;
+    const n = FUR.spikes;
+    const i = ((Math.round((Math.atan2(x, y) - roll) / STEP) % n) + n) % n;
+    return Math.hypot(x, y) <= r[i] + (pointerType === 'touch' ? HIT.finger * size : 0);
+  };
+  // Pointed at, the hand shows he can be pressed, and his pupils widen.
+  const pointed = (on) => {
+    host.style.cursor = on ? 'pointer' : '';
+    if (interest.target === +on) return;
+    interest.target = +on;
+    wake();
+  };
+  host.addEventListener('pointermove', (event) => pointed(over(event)), { signal });
+  host.addEventListener('pointerleave', () => pointed(false), { signal });
   document.addEventListener(
     'mousemove',
     (event) => {
       pointer = { x: event.clientX, y: event.clientY };
-      if (searching) glad();
+      const now = performance.now();
+      if (searching) glad(now);
+      notice(now);
       clearTimeout(missing);
       missing = 0;
       wake();
     },
     { passive: true, signal },
   );
+  // The mouse come near him, for the first time or after a long while: he notices it.
+  let noticeTimer = 0;
+  const notice = (now) => {
+    const rect = canvas.getBoundingClientRect();
+    const away = Math.hypot(
+      pointer.x - (rect.left + rect.width / 2),
+      pointer.y - (rect.top + rect.height / 2),
+    );
+    if (!rect.width || away > (NOTICE.near * rect.width) / SPAN) return;
+    const since = now - lastNear;
+    lastNear = now;
+    if (since < NOTICE.forget || !visible || !born || now - born < NOTICE.after) return;
+    if (pressedAt || joy.target || content.target || searching) return;
+    tune(squash, SPRINGS.release);
+    squash.v -= NOTICE.stretch;
+    hop.v += NOTICE.hop;
+    noticeTimer = setTimeout(() => blink(), NOTICE.blink);
+  };
   // The mouse gone from the window: a while later, he looks about for it, here and there round
   // him, until it's back.
   const search = (k = 0) => {
@@ -879,10 +941,13 @@ export function companion3d(host, { look = null, onStop } = {}) {
     },
     { signal },
   );
-  // And back: glad to see it.
-  const glad = () => {
+  // And back: glad to see it, unless he was glad only a little while ago (MISSED).
+  const glad = (now) => {
     searching = false;
     if (pressedAt) return;
+    if (now - lastGlad < MISSED.again) return blink(now);
+    lastGlad = now;
+    wink = -1;
     clearTimeout(joyTimer);
     tune(joy, SPRINGS.press);
     joy.target = MISSED.smile;
@@ -1088,7 +1153,9 @@ export function companion3d(host, { look = null, onStop } = {}) {
     for (const s of springs) if (resting(s)) Object.assign(s, { x: s.target, v: 0 });
 
     const { world, turned, frames } = pose(now, upper);
-    const squeeze = clamp(Math.max(joy.x, CONTENT.bliss * content.x), 0, 1);
+    // Smiling, or content; in a wink, one eye only squints.
+    const squeezed = (i) =>
+      clamp(Math.max(joy.x * (i === wink ? VARY.open : 1), CONTENT.bliss * content.x), 0, 1);
     // The painted shadow: below and to the left, leaning away from the mouse's side; and his
     // tones, from the drawing's flat ink to his two once the light has come on.
     const lean = pointing ? [Math.tanh(dx / 500), -Math.tanh(dy / 500)] : [0.3, 0.4];
@@ -1145,6 +1212,7 @@ export function companion3d(host, { look = null, onStop } = {}) {
     for (const [i, eye] of eyes.entries()) {
       const { rx, ry, depth } = eye.e;
       const frame = frames[i];
+      const squeeze = squeezed(i);
       const lids = {
         uFace: M.times(M.scale(1 / rx, 1 / ry, 1), M.invert(M.times(frame, eye.tilt))),
         uLids: [upper, lower, squeeze],
@@ -1253,6 +1321,9 @@ export function companion3d(host, { look = null, onStop } = {}) {
     const lumps = new Float32Array(n);
     let fit = null;
     const bends = Array.from({ length: n }, () => Spring(PET.spring));
+    // Where he is on the canvas as last drawn, for pointing at him (HIT), in its pixels from its
+    // middle: his middle, which way is up, his radius, and how far each slice of him reaches.
+    const hit = { ready: false, cx: 0, cy: 0, roll: 0, size: 0, r: new Float32Array(n) };
 
     function lay({ world, turned, rect, dt, shadow, tones }) {
       const [w, h] = [canvas.width / 2, canvas.height / 2];
@@ -1355,6 +1426,7 @@ export function companion3d(host, { look = null, onStop } = {}) {
         const py = h - ((ruffle.y - rect.top) / rect.height) * canvas.height;
         ripple = Math.atan2(px - cx, py - cy) - roll;
       }
+      Object.assign(hit, { ready: true, cx, cy, roll, size });
       let bent = false;
       stroking = false;
       for (let i = 0; i < n; i++) {
@@ -1364,6 +1436,7 @@ export function companion3d(host, { look = null, onStop } = {}) {
         const to = edge(i + 1) + lumps[(i + 1) % n] * size;
         const along = from + ((to - from) * (tip - a)) / STEP;
         const len = reach[i] * size;
+        hit.r[i] = from + HIT.fur * len;
         // Bent by the hand: toward where it's going across the spike, as far as it's fast and
         // near (measured to the spike from its root to its tip).
         const bend = bends[i];
@@ -1385,7 +1458,7 @@ export function companion3d(host, { look = null, onStop } = {}) {
           if (ruffle.age >= Math.abs(off) * RUFFLE.travel) {
             ruffle.reached[i] = 1;
             const fade = 1 - (1 - RUFFLE.far) * (Math.abs(off) / Math.PI);
-            bend.v += Math.sign(off) * RUFFLE.kick * fade;
+            bend.v += Math.sign(off) * ruffle.kick * fade;
           }
         }
         for (let u = 0; u < dt; u += 1 / 240) step(bend, Math.min(1 / 240, dt - u));
@@ -1443,7 +1516,7 @@ export function companion3d(host, { look = null, onStop } = {}) {
       if (ruffle?.reached.every(Boolean)) ruffle = null;
       return bent || Boolean(ruffle) || Math.hypot(hand.vx, hand.vy) > 1;
     }
-    return { position, tone, index: new Uint16Array(index), lay };
+    return { position, tone, index: new Uint16Array(index), lay, hit };
   }
 
   // Gone, the drawing comes back: a lost context, too slow a machine, or reduced motion asked for
@@ -1457,6 +1530,8 @@ export function companion3d(host, { look = null, onStop } = {}) {
     clearTimeout(releaseTimer);
     clearTimeout(joyTimer);
     clearTimeout(missing);
+    clearTimeout(noticeTimer);
+    host.style.cursor = '';
     listening.abort();
     watch.disconnect();
     sizing.disconnect();
