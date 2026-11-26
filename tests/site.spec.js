@@ -453,7 +453,7 @@ test(
     await expect.poll(look).toBeLessThan(-2);
     await touch(1400);
     await expect.poll(look).toBeGreaterThan(2);
-    // Pressed, his eyes squeeze into happy arcs, and open again once let go.
+    // Pressed, his eyes squeeze into happy arcs, stay so a beat once let go, and open again.
     const lids = () =>
       page.locator('.footer-lid').evaluateAll((all) => all.map((lid) => lid.style.visibility));
     const o = await page.locator('.footer-o').first().boundingBox();
@@ -461,6 +461,7 @@ test(
     await page.mouse.down();
     await expect.poll(lids).toEqual(['visible', 'visible']);
     await page.mouse.up();
+    expect(await lids()).toEqual(['visible', 'visible']);
     await expect.poll(lids).toEqual(['hidden', 'hidden']);
     expect(errors).toEqual([]);
   },

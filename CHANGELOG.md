@@ -2,6 +2,10 @@
 
 What changed in each version, newest first. Each version's section becomes its tag message (`make tag`) and its GitHub release notes (`make release`).
 
+## v1.0.1 - Unreleased
+
+- The companion in Slides' toolbar smiles a moment after you click him, not only while the button is down.
+
 ## v1.0.0 - 2026-11-26
 
 **Image Spotlight is now Slides Companion**

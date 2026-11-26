@@ -1045,14 +1045,22 @@
     let joy = 0;
     let glad = false;
     let gladAt = 0;
+    let gladTimer = 0;
     phrase.addEventListener('pointerdown', () => {
+      clearTimeout(gladTimer);
       glad = true;
       gladAt = performance.now();
     });
-    // A quick tap still gets the whole smile: it lets go once he's had time to squeeze.
+    // Let go, the smile stays a beat (650 ms, as the companions' do) after he's had time to
+    // squeeze, so a quick tap gets it too: a click is a moment of joy, not only for as long as the
+    // button is down.
     const letGo = () => {
       if (!glad) return;
-      setTimeout(() => (glad = false), Math.max(0, gladAt + 160 - performance.now()));
+      clearTimeout(gladTimer);
+      gladTimer = setTimeout(
+        () => (glad = false),
+        Math.max(0, gladAt + 90 - performance.now()) + 650,
+      );
     };
     document.addEventListener('pointerup', letGo, { capture: true });
     document.addEventListener('pointercancel', letGo, { capture: true });

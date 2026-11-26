@@ -70,6 +70,32 @@ test(
   },
 );
 
+test(
+  'a quick click leaves the companion smiling a beat, and holding keeps the smile as long as it’s held',
+  { tag: '@offline' },
+  async ({ page }) => {
+    const button = await companion(page);
+    const open = await openings(page);
+    const box = await button.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.clock.runFor(20);
+    await page.mouse.up();
+    // Half a second on, his body has sprung back, and his eyes are still happy arcs.
+    await page.clock.runFor(600);
+    expect(await height(page)).toBeGreaterThan(0.98);
+    for (const opening of await openings(page)) expect(opening).toBeLessThan(80);
+    // Then they open again, all the way.
+    await page.clock.runFor(1500);
+    (await openings(page)).forEach((opening, i) => expect(opening).toBeGreaterThan(open[i] - 2));
+
+    await page.mouse.down();
+    await page.clock.runFor(3000);
+    for (const opening of await openings(page)) expect(opening).toBeLessThan(80);
+    await page.mouse.up();
+  },
+);
+
 test('the companion blinks every few seconds', { tag: '@offline' }, async ({ page }) => {
   // The first blink comes at the soonest it can, 2.6 seconds in.
   await companion(page, { random: 0 });

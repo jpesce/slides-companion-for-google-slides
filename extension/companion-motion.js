@@ -6,7 +6,7 @@
   // His pupils follow the mouse; he blinks now and then, and when his gaze swings a long way (a
   // blink hides a change of gaze, as animators time one); pressed, he gives under the finger and
   // squeezes his eyes into happy arcs, and let go, he springs back past his shape and wobbles to
-  // rest, his face settling a beat after his body. All of it is springs and timed blinks, stepped
+  // rest, his face settling a beat after his body and his smile staying a moment longer. All of it is springs and timed blinks, stepped
   // once a frame and only while something is still moving. A spring carries on from wherever it
   // is, at the speed it's going, so a press that interrupts a bounce, or a glance in the middle of
   // a blink, flows on from it instead of jumping. Nothing moves but his pupils when the system
@@ -67,12 +67,25 @@
   const BLINK_EVERY = [2600, 7200];
   // The happy arc his eyes squeeze into, in shares of the eye: where its middle sits below the
   // eye's centre, how far its ends bend down, its half thickness, and its half length; and where
-  // the pupils sink to, out of its way. Thin, so the eye reads as shut: thicker, at the toolbar's
-  // 25 pixels it looked like an eye half open, looking up. Thinner, it breaks up on a screen
-  // without high density. `hidden` is how squeezed the eyes are when the pupils are hidden
-  // outright: by then the rising lower lid has covered them wherever he looks, so they can never
-  // show in the arc.
-  const SMILE = { middle: 0.04, bend: 0.55, half: 0.14, width: 0.86, sink: 1.0, hidden: 0.6 };
+  // the pupils sink to, out of its way. Thin, as the website's 3D companion's, so the eye reads as
+  // shut: thicker, at the toolbar's 25 pixels it looked like an eye half open, looking up. But
+  // never thinner than `least` device pixels: thinner, it breaks up on a screen without high
+  // density, where the toolbar's 25 pixels keep it at about 0.14 of the eye. `hidden` is how
+  // squeezed the eyes are when the pupils are hidden outright: by then the rising lower lid has
+  // covered them wherever he looks, so they can never show in the arc.
+  const SMILE = {
+    middle: 0.04,
+    bend: 0.55,
+    half: 0.1,
+    least: 0.9,
+    width: 0.86,
+    sink: 1.0,
+    hidden: 0.6,
+  };
+  // Let go, his body springs back at once, but the smile stays a beat longer (`hold` milliseconds),
+  // then his eyes open, gently (`open`, a spring that doesn't overshoot): a click is a moment of
+  // joy, not only for as long as the button is down. As the website's 3D companion's.
+  const JOY = { hold: 650, open: [13, 1] };
   // A glance that swings this far (radians), within this long, brings a blink, but not more often
   // than every `rest` milliseconds.
   const GLANCE = { angle: 1.75, within: 400, chance: 0.7, rest: 1400 };
@@ -95,10 +108,11 @@
   //  - Blinking (`blink` the upper lid, `rise` the lower one), the upper edge comes down and takes
   //    the lower one's curve as it lands, so they meet all along.
   //  - Squeezed (`squeeze`, when he's pressed), what's left of each eye is an arc with round
-  //    ends, the ^ ^ of a happy face, low in the eye as if his cheeks pushed it up.
+  //    ends, the ^ ^ of a happy face, low in the eye as if his cheeks pushed it up, `thickness`
+  //    of the eye thick on either side of its middle.
   //    The lower lid leads, rising into the smile, and the upper one follows: the other way
   //    round, a flat upper lid coming down first, he looks cross for a frame or two.
-  function aperture(eye, blink, rise, squeeze) {
+  function aperture(eye, blink, rise, squeeze, thickness = SMILE.half) {
     const meet = 0.2;
     const lowerMiddle = 1.25 + (meet - 1.25) * 0.3 * rise;
     const lowerCurve = -0.15;
@@ -110,7 +124,7 @@
     const lerp = (from, to, t) => from + (to - from) * t;
     // The arc's half length, in the picture's units, and the share of it its round ends take.
     const length = eye.rx * SMILE.width;
-    const end = Math.min(1, (SMILE.half * eye.ry) / length);
+    const end = Math.min(1, (thickness * eye.ry) / length);
     const above = [];
     const below = [];
     // Spaced closer towards the ends, where the arc's round ends need the points.
@@ -120,7 +134,7 @@
       const x = lerp(eye.rx * 1.25, length, narrow) * u;
       const middle = (SMILE.middle + SMILE.bend * u * u) * eye.ry;
       const along = Math.max(0, (Math.abs(u) - (1 - end)) / end);
-      const half = SMILE.half * eye.ry * Math.sqrt(Math.max(0, 1 - along * along));
+      const half = thickness * eye.ry * Math.sqrt(Math.max(0, 1 - along * along));
       const yUpper = lerp((upperMiddle + upperCurve * u * u) * eye.ry, middle - half, follow);
       const yLower = lerp((lowerMiddle + lowerCurve * u * u) * eye.ry, middle + half, lead);
       above.push(`${x.toFixed(1)} ${yUpper.toFixed(1)}`);
@@ -199,12 +213,15 @@
     const squash = new Spring(SPRINGS.press);
     const face = new Spring(SPRINGS.face);
     const interest = new Spring(SPRINGS.interest);
-    const springs = [...gaze.flat(), squash, face, interest];
+    // How squeezed his eyes are: with his squash while pressed, and a moment after (JOY).
+    const joy = new Spring(SPRINGS.press);
+    const springs = [...gaze.flat(), squash, face, interest, joy];
     let mouse = null;
     let moved = false;
     let blinks = [];
     let pressedAt = 0;
     let releaseTimer = 0;
+    let joyTimer = 0;
     let lastBlink = -Infinity;
 
     // Lids and dips for the blinks under way at `now`.
@@ -219,7 +236,7 @@
     }
 
     function blink(now = performance.now()) {
-      if (still.matches || pressedAt || now - lastBlink < 200) return;
+      if (still.matches || pressedAt || joy.target || now - lastBlink < 200) return;
       lastBlink = now;
       blinks.push(now);
       if (Math.random() < BLINK.double)
@@ -253,6 +270,9 @@
       if (!rect.width) return;
       const scale = rect.width / size;
       const radius = (eye) => eye.r * (1 + 0.1 * interest.x);
+      // The smile's arcs as thin as SMILE has them, unless that's under `least` device pixels.
+      const thickness = (eye) =>
+        Math.max(SMILE.half, SMILE.least / (2 * eye.ry * scale * devicePixelRatio));
 
       // Where each pupil wants to be.
       if (mouse) {
@@ -282,7 +302,7 @@
 
       const { upper, lower } = blinking(now);
       const s = squash.x;
-      const squeeze = Math.min(1, Math.max(0, s));
+      const squeeze = Math.min(1, Math.max(0, joy.x));
       const stretch = Math.max(0, -s);
       // The body squashes from its base, and dips a touch as he blinks.
       const sx = 1 + SQUASH.x * s;
@@ -303,7 +323,7 @@
           'transform',
           `translate(${eye.x} ${eye.y}) scale(${widen.toFixed(4)}) translate(${-eye.x} ${-eye.y})`,
         );
-        lids[i].setAttribute('d', aperture(eye, upper, lower, squeeze));
+        lids[i].setAttribute('d', aperture(eye, upper, lower, squeeze, thickness(eye)));
         // Pupils dip with a blink, as eyes roll down when the lids close.
         const r = radius(eye);
         const at = [gaze[i][0].x - eye.x, gaze[i][1].x - eye.y + 0.25 * eye.ry * upper];
@@ -369,13 +389,16 @@
     function press() {
       if (still.matches) return;
       clearTimeout(releaseTimer);
+      clearTimeout(joyTimer);
       pressedAt = performance.now();
       blinks = [];
       squash.tune(SPRINGS.press);
-      squash.target = 1;
+      joy.tune(SPRINGS.press);
+      squash.target = joy.target = 1;
       wake();
     }
-    // A quick click still gets a full squash: the release waits until he's had time to give.
+    // A quick click still gets a full squash: the release waits until he's had time to give. Then
+    // he springs back, and smiles on a moment (JOY).
     function release() {
       if (!pressedAt) return;
       const wait = Math.max(0, pressedAt + 90 - performance.now());
@@ -384,6 +407,11 @@
         squash.tune(SPRINGS.release);
         squash.target = 0;
         wake();
+        joyTimer = setTimeout(() => {
+          joy.tune(JOY.open);
+          joy.target = 0;
+          wake();
+        }, JOY.hold);
       }, wait);
     }
     host.addEventListener('pointerdown', (event) => {
@@ -425,4 +453,7 @@
 
   globalThis.slidesCompanion ??= {};
   globalThis.slidesCompanion.animateCompanion = animate;
+  // And how his eyes smile, for Settings' picture of him being clicked
+  // (scripts/build-illustrations.mjs), so it smiles as he does.
+  globalThis.slidesCompanion.companionSmile = { aperture, SMILE, JOY };
 }

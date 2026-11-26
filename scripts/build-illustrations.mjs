@@ -752,13 +752,16 @@ const scenes = {};
 }
 
 // The companion: at the end of Slides' toolbar, his eyes follow the pointer around the slide, and
-// it clicks him, which opens Settings: he squashes under it and springs back, as in Slides. He's the
-// toolbar companion's own drawing (companion-drawing.js, from build-brand.mjs), at the size he has
-// in a toolbar this tall.
+// it clicks him, which opens Settings: he squashes under it and springs back, smiling a moment
+// longer, as in Slides. He's the toolbar companion's own drawing (companion-drawing.js, from
+// build-brand.mjs), at the size he has in a toolbar this tall, and his smile is its own
+// (companion-motion.js).
 {
   globalThis.slidesCompanion ??= {};
   await import('../extension/companion-drawing.js');
-  const { svg: drawing, view, base } = globalThis.slidesCompanion.companionDrawing;
+  await import('../extension/companion-motion.js');
+  const { svg: drawing, view, base, eyes } = globalThis.slidesCompanion.companionDrawing;
+  const { aperture, SMILE, JOY } = globalThis.slidesCompanion.companionSmile;
   const SIZE = 40,
     CX = 418,
     CY = 60;
@@ -777,19 +780,71 @@ const scenes = {};
     C = [406, 71];
   const CLICK = 2.5;
   const shot = camera(1.3, 440, 40);
-  // Each pupil, moved by where he looks.
+  // How squeezed his eyes are through the click, as Slides' companion's springs have it: in at
+  // once on the press, held JOY.hold after he springs back (90 ms after the press, at the least),
+  // then opening on JOY.open's spring, which doesn't overshoot.
+  const [omega] = JOY.open;
+  const open = JOY.hold / 1000 + 0.09;
+  const joy = [
+    [0, 0],
+    [CLICK, 0],
+    [CLICK + 0.05, 0.6],
+    [CLICK + 0.1, 1],
+    [CLICK + open, 1],
+    ...[0.1, 0.2, 0.3, 0.45].map((t) => [CLICK + open + t, (1 + omega * t) * Math.exp(-omega * t)]),
+    [CLICK + open + 0.6, 0],
+    [T, 0],
+  ];
+  const times = joy.map(([t]) => t);
+  const linear = times.slice(1).map(() => HOLD);
+  // Each eye's lids: the opening they leave, squeezing into the smile's arc.
+  const lids = eyes.map(
+    (e, i) =>
+      `<clipPath id="companion-lids-${i}"><path transform="translate(${e.x} ${e.y})">${anim(
+        'd',
+        joy.map(([, s]) => aperture(e, 0, 0, s)),
+        times,
+        linear,
+      )}</path></clipPath>`,
+  );
+  // Each pupil, moved by where he looks; as he smiles, sinking below the arc and hidden once the
+  // lower lid has it, as in Slides.
+  const [lx, ly] = look(C).split(' ').map(Number);
+  let lid = 0;
   let eye = 0;
-  const face = drawing.replace(/<circle class="slides-companion-pupil"([^>]*)\/>/g, (_, rest) => {
-    eye++;
-    return `<circle${rest}>${tf(
-      'translate',
-      [look(A), look(A), look(C), look(C), look(A), look(A)],
-      [0, 0.6, 1.9, 4.1, 5.0, T],
-      [HOLD, EASY, HOLD, EASY, HOLD],
-    )}</circle>`;
-  });
-  if (eye !== TOOLBAR.eyes.length)
-    throw new Error(`Found ${eye} of the companion's pupils in companion-drawing.js`);
+  const face = drawing
+    .replace(
+      /<g class="slides-companion-lids">/g,
+      () => `<g clip-path="url(#companion-lids-${lid++})">`,
+    )
+    .replace(/<circle class="slides-companion-pupil"([^>]*)\/>/g, (_, rest) => {
+      const { ry } = eyes[eye++];
+      const sink = joy.map(([, s]) => 1 - (1 - s) ** 2);
+      return `<circle${rest}>${tf(
+        'translate',
+        [look(A), look(A), look(C), look(C), look(A), look(A)],
+        [0, 0.6, 1.9, 4.1, 5.0, T],
+        [HOLD, EASY, HOLD, EASY, HOLD],
+      )}${tf(
+        'translate',
+        sink.map((k) => `${(-lx * k).toFixed(1)} ${((SMILE.sink * ry - ly) * k).toFixed(1)}`),
+        times,
+        linear,
+        true,
+      )}${step(
+        'visibility',
+        ['visible', 'hidden', 'visible'],
+        [
+          0,
+          times[joy.findIndex(([, s]) => s > SMILE.hidden)],
+          times[joy.findLastIndex(([, s]) => s > SMILE.hidden) + 1],
+        ],
+      )}</circle>`;
+    });
+  if (eye !== TOOLBAR.eyes.length || lid !== TOOLBAR.eyes.length)
+    throw new Error(
+      `Found ${eye} pupils and ${lid} lids of the companion's in companion-drawing.js`,
+    );
   // Without the classes companion.js and its styles find him by, so this copy is only a picture.
   const [, inner] = face
     .replace(/ class="slides-companion-[a-z]+"/g, '')
@@ -810,7 +865,7 @@ const scenes = {};
     <!-- The companion, squashing towards where he sits as he's clicked. -->
     <g transform="translate(${CX} ${BASE_Y.toFixed(1)})"><g>
       ${tf('scale', ['1 1', '1 1', '1.06 0.88', '0.97 1.04', '1 1', '1 1'], [0, CLICK, CLICK + 0.1, CLICK + 0.3, CLICK + 0.5, T], [HOLD, EASY, EASY, EASY, HOLD])}
-      <svg x="${-SIZE / 2}" y="${(CY - SIZE / 2 - BASE_Y).toFixed(1)}" width="${SIZE}" height="${SIZE}" viewBox="${view.x} ${view.y} ${view.size} ${view.size}">${inner}</svg>
+      <svg x="${-SIZE / 2}" y="${(CY - SIZE / 2 - BASE_Y).toFixed(1)}" width="${SIZE}" height="${SIZE}" viewBox="${view.x} ${view.y} ${view.size} ${view.size}"><defs>${lids.join('')}</defs>${inner}</svg>
     </g></g>
     ${cursor(
       [
