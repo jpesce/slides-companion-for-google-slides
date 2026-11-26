@@ -1,79 +1,102 @@
 # Chrome Web Store listing
 
-The text for the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), kept here so it changes with the extension. Paste each part into its field when it changes.
+Everything we put on the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole) lives here, so it stays in step with the extension. When something changes, update it here first, then paste it into the dashboard.
 
 ## Name and summary
 
-Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription` ("Google Slides™ presentations, enhanced, for free: pictures up close, links on your slide, a countdown and notes that float on top."), which the store shows beside the name in search, on its homepage and on category pages. A test keeps each within Chrome's limits (75 and 132 characters).
+These two aren't pasted in. They come from `extension/_locales/*/messages.json`, so every language gets them with the next release:
 
-The store finds extensions mostly by the words in their name. So after our own name, it carries the most-searched words of our niche, then Google Slides' name in each language, after "for" and marked ™, as Google's branding rules ask.
+- `storeName`, in English "Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" (75 characters at most)
+- `extensionDescription`, in English "Google Slides™ presentations, enhanced, for free: pictures up close, links on your slide, a countdown and notes that float on top." (132 at most)
+
+The store shows the summary next to the name in search results, on its homepage and on category pages. A test fails if either one goes over Chrome's limit.
+
+People mostly find extensions by the words in their name. That's why the name has the features people search for after "Slides Companion", and ends with "for Google Slides™" in each language. Google's branding rules ask for the "for" and the ™.
 
 ## Description
 
-Presenting in Google Slides™, with a little help. Show a picture up close, open a link right on your slide, finish on time and keep your notes in sight, all without leaving the slideshow.
+Present in Google Slides™ with a little help. Show pictures up close, open links without leaving your slide, keep an eye on the time and keep your notes where you can see them.
 
-Slides Companion works on top of Slides’ own slideshow, so your videos, animations and clicker keep working. It’s free and open source, with no account and no servers: everything happens in your browser.
+It runs on top of Google Slides™, so everything else just works. Free and open source. We collect no data, everything happens in your browser.
 
-🖼️ PICTURES UP CLOSE
-During a slideshow, click a picture to see it full screen, then go through the slide’s other pictures. While editing, select one and press Space. Right-click a picture to download the original.
+🔍 SPOTLIGHT
+Click a picture during a slideshow to see it full screen, then flip through the other pictures on that slide. While editing, select a picture and press Space. Right-click any picture to download the original.
 
-🔗 LINKS ON YOUR SLIDE
-Links open right over your slide, PDFs included. Press Esc and you’re back where you left off.
+🔗 LINKS
+Links open over your slide instead of in a new tab, PDFs too. Press Esc to get back to where you were.
 
-⏱️ COUNTDOWN TIMER
-In presenter view, count down from the time you have, with a bar that fills as you go and turns orange near the end.
+⏱️ TIMER
+Tell presenter view how long you have and it counts down. A bar fills up as the time goes, and turns orange when you’re almost out.
 
-📝 PRESENTER VIEW ON ONE SCREEN
-Presenter view floats over your full-screen slideshow, with your notes, the timer and the next slide, so one screen is enough. Or float just your notes. With a second screen, presenter view opens in its own window, as Slides does.
+📝 PRESENTER VIEW
+Only have one screen? Presenter view floats on top of your full-screen slideshow, with your notes, the timer and the next slide. You can also float just your notes. On a video call, share only the slideshow’s tab and nobody else sees your notes, because the floating window isn’t part of the share. With a second screen, presenter view opens in its own window, like it always has.
 
-🤫 NOTES ONLY YOU SEE
-In a video call, share just the slideshow’s tab: the floating window stays out of the share, so only you see your notes.
+✏️ LIVE EDITS
+Changes to the deck show up in a slideshow that’s already running, whether you made them or someone else did. Handy for a deck on an office TV: start the slideshow from the editor on the TV, and edits appear within seconds. A “Publish to the web” link can take 30 to 60 minutes to update.
 
-⚡ LIVE EDITS
-Edits to the deck, by you or anyone else, show up in a slideshow that’s already running. Showing a deck on an office TV? Start the slideshow from the editor on the TV, and changes show up there within seconds. (A “Publish to the web” link takes 30 to 60 minutes to catch up.)
+🔎 ZOOM & SCROLL
+Zoom in on a detail with your trackpad, mouse wheel or the + and - keys. An accidental swipe on the trackpad won’t skip a slide.
 
-🔍 ZOOM AND SCROLL
-Zoom in on a detail with your trackpad, mouse wheel or the + and - keys. A stray swipe on the trackpad won’t skip a slide.
-
-🖊️ DRAWINGS THAT STAY
-What you draw with Slides’ pen stays on the slide for the next time you present.
+🖊️ PEN
+Whatever you draw with Slides’ pen is still there the next time you present.
 
 ⚙️ MAKE IT YOURS
-Each tool has its own page in Settings: click the companion in Slides’ toolbar, or the extension’s button in your browser. Rather keep Slides exactly as Google made it? Tuck the companion away in Settings.
+Every tool has its own page in Settings. Open it from the companion in Slides’ toolbar, or from the extension’s button in your browser. If you’d rather Slides looked exactly like Google made it, you can hide the companion there too.
 
-🌍 Speaks 33 languages, and switches to match Slides.
+🌍 Available in 33 languages. It follows whatever language your Slides is in.
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.
 
+## Links
+
+Store listing › Additional fields:
+
+- Homepage URL: https://slidescompanion.pesce.cc/
+- Support URL: https://github.com/jpesce/slides-companion-for-google-slides/issues, where the issue forms ask for what helps most
+
 ## Icon
 
-The store's icon (Store listing › Graphic assets) is `extension/icons/icon128.png`, made by `npm run brand` (see [brand/README.md](brand/README.md)). Upload it again whenever the icon changes.
+Store listing › Graphic assets › Store icon: `extension/icons/icon128.png`. `npm run brand` draws it ([brand/README.md](brand/README.md)). Upload it again whenever the icon changes.
 
 ## Promo tile
 
-The store's small promo tile (Store listing › Graphic assets), 440×280, is what the store shows when it features the extension. Ours is `brand/store-promo-tile.png`, the app icon on light grey, made by `npm run brand` ([brand/README.md](brand/README.md)). The store asks for no words on it and for it to work at half its size. Upload it again whenever it changes.
+Store listing › Graphic assets › Small promo tile, 440×280: `brand/store-promo-tile.png`, the icon on light grey. The store uses it when it features the extension. Google asks for no text on it, and for it to still read at half size. `npm run brand` draws it too.
 
 ## Marquee
 
-The marquee (Store listing › Graphic assets), 1400×560, is the banner the store's homepage carousel shows if it picks the extension, and it can't pick one without it. Ours is `brand/store-marquee.png`, the app icon beside the extension's name and its tagline, "Google Slides™ presentations, enhanced.", on light grey, also made by `npm run brand`.
+Store listing › Graphic assets › Marquee, 1400×560: `brand/store-marquee.png`, the icon next to the name and the tagline, "Google Slides™ presentations, enhanced.", on light grey. It's the banner for the store's homepage carousel. The store can't put us in the carousel without one. `npm run brand` draws it as well.
 
 ## Screenshots
 
-The store needs at least one screenshot and takes five (Store listing › Graphic assets), at 1280×800. Ours are `build/demo/store/screenshot-1.png` to `screenshot-5.png`, one feature each, in that order: pictures up close, links, the timer, floating notes and live edits. `npm run demo:screenshots` makes them from what `npm run demo` captures, so after a change the extension shows, run both and upload them again. Each says in a few words what the feature does for the presenter, on light grey, above the real thing on a screen, cropped to where it happens, with the companion peeking over the screen's top edge, as he peeks up on the icon, looking at it. The store wants them full bleed with square corners, showing the real extension with little text, and shows them at half size, so the words have to read at 640×400. To change the words or what each one shows, edit `SCREENSHOTS` in `scripts/demo/screenshots.mjs`.
+Store listing › Graphic assets › Screenshots, 1280×800. The store needs at least one and takes up to five. Ours are `build/demo/store/screenshot-1.png` to `screenshot-5.png`, in this order:
+
+1. Pictures up close
+2. Links
+3. The timer
+4. Floating notes
+5. Live edits
+
+Each one has a short line about what the feature does, above the real thing on a screen, cropped to where it happens. The companion peeks over the top of the screen at it, the way he does on the icon.
+
+Google wants them full bleed, with square corners, showing the real extension and not much text. The store shows them at half size, so the words have to be readable at 640×400.
+
+When the extension changes in a way you can see, run `npm run demo` and then `npm run demo:screenshots`, and upload them again. The words and the crop of each one are in `SCREENSHOTS` in `scripts/demo/screenshots.mjs`.
 
 ## Video
 
-The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo:finish` from the After Effects edit ([CONTRIBUTING.md](CONTRIBUTING.md#pictures-and-the-demo-video) says how to bring it up to date).
+Store listing › Graphic assets › YouTube video. It plays at the top of the listing, before the screenshots. Ours is the demo film, `build/demo/slides-companion-demo.mp4`, which `npm run demo:finish` makes from the After Effects edit ([CONTRIBUTING.md](CONTRIBUTING.md#pictures-and-the-demo-video) explains how to update it). It's on YouTube at https://youtu.be/RIkkW6QDaOY.
 
-1. Upload it to YouTube, as Public or Unlisted (the store plays either), with the title "Slides Companion: Google Slides™ presentations, enhanced" and this description:
+After a new cut:
 
-   > Google Slides™ presentations, enhanced, for free: see pictures up close, open links over your slide, zoom in, keep your drawings, count down in presenter view, float your notes on top and edit the deck while it's on screen. https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd
+1. Upload it to YouTube, Public or Unlisted (the store plays both), with the title "Slides Companion: Google Slides™ presentations, enhanced" and this description:
 
-2. Paste its link into the field.
+   > Free tools for presenting in Google Slides™. See pictures up close, open links over your slide, zoom in, keep your drawings, count down in presenter view, float your notes on top, and edit the deck while it's on screen. https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd
 
-After a new cut, upload the new video and replace the link.
+   For the thumbnail, use a frame of the title card where the companion's eyes are open. He blinks at 1.5 s, so 1.9 s works.
 
-The README plays a lighter copy, `build/demo/slides-companion-demo-readme.mp4`, also made by `npm run demo:finish`: GitHub plays videos up to 10 MB on a free plan. After a new cut, drop it into any GitHub comment box to get a new `user-attachments` link (no need to post the comment), and replace the one under the README's intro.
+2. Paste the new link into the field, and here.
+
+The README plays a smaller copy, `build/demo/slides-companion-demo-readme.mp4`, also made by `npm run demo:finish`, because GitHub only plays videos up to 10 MB on a free plan. To update it, drop the file into any GitHub comment box to get a `user-attachments` link (you don't have to post the comment), and swap it for the link under the README's intro.
 
 ## Privacy practices
 
@@ -81,13 +104,13 @@ The README plays a lighter copy, `build/demo/slides-companion-demo-readme.mp4`, 
 
 **Permission justifications:**
 
-- `storage`: saves the presenter's settings, drawings, timer time for each deck, the floating notes window's size and zoom, and when live edits last stopped working, on the presenter's computer.
-- `scripting`: when the presenter allows every site, runs a small script in pages opened over the slide during a slideshow, so Esc returns to the slideshow and the bar shows the page's site.
-- `declarativeNetRequestWithHostAccess`: when the presenter allows every site, lets a page open over the slide in the presenting tab, by removing the X-Frame-Options and Content-Security-Policy response headers of frames in that tab (never Google Slides' own), only while the page is open.
+- `storage`: keeps the presenter's settings, drawings, timer length for each deck, the floating notes window's size and zoom, and when live edits last stopped working. All of it stays on the presenter's computer.
+- `scripting`: only if the presenter allows all sites. Runs a small script in a page opened over the slide during a slideshow, so Esc gets back to the slideshow and the bar can show the page's site.
+- `declarativeNetRequestWithHostAccess`: only if the presenter allows all sites. Lets a page open over the slide in the presenting tab by removing the X-Frame-Options and Content-Security-Policy response headers of frames in that tab, and only while the page is open. Google Slides' own headers are never touched.
 - Host permission `https://docs.google.com/presentation/*`: adds the tools to Google Slides.
-- Optional host permission for every site: asked only when the presenter clicks "Allow all sites" in Settings, so any site can open over the slide.
+- Optional host permission for all sites: requested only when the presenter clicks "Allow all sites" in Settings, so any site can open over the slide.
 
-**Remote code:** none. Every script is in the package.
+**Remote code:** none. Every script ships in the package.
 
 **Data usage:** collects no user data.
 

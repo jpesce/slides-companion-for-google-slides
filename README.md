@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 - ✏️ **Live edits:** changes to the deck reach a slideshow that's already running.
 - 🖼️ **Download image:** save any picture as it was added to the deck.
 
-🕊️ Free and open source, with no account and no servers: everything happens in your browser.
+🕊️ Free and open source. We collect no data, everything happens in your browser.
 
 See [how it compares](BENCHMARK.md) with Slides' own tools and other extensions.
 
