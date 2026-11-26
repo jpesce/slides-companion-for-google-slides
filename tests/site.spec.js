@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { pathToFileURL } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { assemble, privacy } from '../scripts/build-site.mjs';
@@ -246,6 +247,121 @@ test(
     await expect.poll(x).toBeGreaterThan(left + 40);
     await touch('touchEnd');
     await context.close();
+  },
+);
+
+// The companions in 3D (site/companion-3d.js) are a module, which Chromium won't load from a
+// file: the page is served from an address of its own, answered from the site's folder.
+const served = async (page) => {
+  await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
+  await page.route('http://companion.test/**', (route) => {
+    const { pathname } = new URL(route.request().url());
+    const file = path.join(OUT, pathname === '/' ? 'index.html' : decodeURIComponent(pathname));
+    return fs.existsSync(file) ? route.fulfill({ path: file }) : route.fulfill({ status: 404 });
+  });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('http://companion.test/');
+  return errors;
+};
+const hero = '.stage .peek';
+
+// Where a companion's canvas is centred, and where his drawing's bun's middle is: half way across
+// the drawing, and 0.4524 of its width down from its top.
+const centres = (page, selector) =>
+  page.evaluate((selector) => {
+    const host = document.querySelector(selector);
+    const box = host.getBoundingClientRect();
+    const canvas = host.querySelector('canvas')?.getBoundingClientRect();
+    return {
+      host: box.toJSON(),
+      canvas: canvas && [canvas.x + canvas.width / 2, canvas.y + canvas.height / 2],
+      bun: [box.x + box.width / 2, box.y + box.width * 0.4524],
+    };
+  }, selector);
+
+test(
+  'the companions come to life in 3D where the drawing has them, and the drawing comes back if WebGL goes',
+  { tag: '@offline' },
+  async ({ page }) => {
+    const errors = await served(page);
+    await expect(page.locator(`${hero}.real canvas`)).toBeAttached();
+    await expect(page.locator(`${hero} svg`)).toBeHidden();
+    // Risen from behind the film (style.css), so he's measured where he stays.
+    await page.waitForFunction(
+      (selector) =>
+        document
+          .querySelector(selector)
+          .getAnimations()
+          .every((animation) => animation.playState === 'finished'),
+      hero,
+    );
+    const alive = await centres(page, hero);
+    expect(alive.canvas[0]).toBeCloseTo(alive.bun[0], 0);
+    expect(alive.canvas[1]).toBeCloseTo(alive.bun[1], 0);
+    // His context lost (the graphics driver reset, or the browser reclaimed it), the drawing is
+    // back where he was, the same size, and follows the pointer again.
+    await page.evaluate((selector) => {
+      const canvas = document.querySelector(`${selector} canvas`);
+      canvas.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext();
+    }, hero);
+    await expect(page.locator(`${hero} canvas`)).toHaveCount(0);
+    await expect(page.locator(`${hero} svg`)).toBeVisible();
+    const svg = await page.locator(`${hero} svg`).boundingBox();
+    for (const side of ['x', 'y', 'width', 'height'])
+      expect(svg[side], side).toBeCloseTo(alive.host[side], 0);
+    const pupil = page.locator(`${hero} .slides-companion-pupil`).first();
+    const rest = await pupil.getAttribute('cx');
+    await page.mouse.move(0, 400);
+    await expect.poll(() => pupil.getAttribute('cx')).not.toBe(rest);
+    // The last call's companion, scrolled to, comes to life too, in his own place.
+    const finale = '.panel .peek-up';
+    await page.locator(finale).scrollIntoViewIfNeeded();
+    await expect(page.locator(`${finale}.real canvas`)).toBeAttached();
+    await expect(async () => {
+      const { canvas, bun } = await centres(page, finale);
+      expect(canvas[0]).toBeCloseTo(bun[0], 0);
+      expect(canvas[1]).toBeCloseTo(bun[1], 0);
+    }).toPass();
+    expect(errors).toEqual([]);
+  },
+);
+
+// He's loaded only once he's on screen, after the page, but still on every visit: about as much
+// as site.js, compressed as GitHub Pages sends it, where three.js alone was over 100 KB.
+test('the 3D companion stays light', { tag: '@offline' }, () => {
+  const gzipped = zlib.gzipSync(fs.readFileSync(path.join(OUT, 'companion-3d.js'))).length;
+  expect(gzipped).toBeLessThan(24 * 1024);
+});
+
+test(
+  'the drawn companion stays for anyone who asks for reduced motion, or has no WebGL 2',
+  { tag: '@offline' },
+  async ({ browser }) => {
+    const still = await browser.newContext({ reducedMotion: 'reduce' });
+    const flat = await browser.newContext();
+    await flat.addInitScript(() => {
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+        return type === 'webgl2' ? null : getContext.call(this, type, ...rest);
+      };
+    });
+    for (const context of [still, flat]) {
+      const page = await context.newPage();
+      const errors = await served(page);
+      await page.locator(hero).scrollIntoViewIfNeeded();
+      // Given time to have come to life, had it been going to: the page loaded, the 3D module too
+      // (the page's own import of it answered first), and a frame or two after.
+      await page.waitForFunction(() => document.readyState === 'complete');
+      await page.evaluate(async () => {
+        await import('./companion-3d.js');
+        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+      });
+      await expect(page.locator(`${hero} canvas`)).toHaveCount(0);
+      await expect(page.locator(`${hero} svg`)).toBeVisible();
+      expect(errors).toEqual([]);
+      await context.close();
+    }
   },
 );
 

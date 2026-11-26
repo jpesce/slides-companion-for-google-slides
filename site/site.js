@@ -187,12 +187,60 @@
   // telling. With nobody pointing for a few seconds (always, on a phone, between taps), each looks
   // about now and then, coming back to you in between, rather than staring at the last place a
   // pointer was.
+  //
+  // The companions peeking over the page's edges come to life in 3D (companion-3d.js), each once
+  // he's on screen and the page has loaded, so he never holds up its first paint, and only for
+  // visitors who haven't asked for reduced motion or to save data. The drawing stays until the 3D
+  // one is drawn, and for anyone WebGL 2 doesn't run for, or runs too slowly; the 3D one starts
+  // looking where the drawing is, and gives his gaze back to it if he stops. The page directs
+  // both, so the drawing is always in his pose. The icon's companions stay drawn: they're the
+  // icon.
   const { animateCompanion, companionDrawing } = globalThis.slidesCompanion;
-  const companions = [...document.querySelectorAll('.peek, .icon')].map((host) => ({
-    host,
-    him: animateCompanion(host, companionDrawing),
-    seen: false,
-  }));
+  const inThreeD = (host, drawn) => {
+    let real = null;
+    let last = null;
+    const him = {
+      look(point) {
+        last = point;
+        drawn.look(point);
+        real?.look(point);
+      },
+      blink() {
+        drawn.blink();
+        real?.blink();
+      },
+    };
+    if (still.matches || navigator.connection?.saveData || !('IntersectionObserver' in window))
+      return him;
+    addEventListener('mousemove', (event) => (last = { x: event.clientX, y: event.clientY }), {
+      passive: true,
+    });
+    const start = () => {
+      const watch = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        watch.disconnect();
+        import('./companion-3d.js')
+          .then(({ companion3d }) => {
+            real = companion3d(host, {
+              look: last,
+              onStop() {
+                real = null;
+                drawn.look(last);
+              },
+            });
+          })
+          .catch(() => {});
+      });
+      watch.observe(host);
+    };
+    if (document.readyState === 'complete') start();
+    else addEventListener('load', start, { once: true });
+    return him;
+  };
+  const companions = [...document.querySelectorAll('.peek, .icon')].map((host) => {
+    const drawn = animateCompanion(host, companionDrawing);
+    return { host, him: host.matches('.peek') ? inThreeD(host, drawn) : drawn, seen: false };
+  });
   let pointed = -Infinity;
   const touched = (event) => {
     pointed = performance.now();

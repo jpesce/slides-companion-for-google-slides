@@ -787,6 +787,30 @@ h1 {
   height: auto;
   overflow: visible;
 }
+/* A companion in 3D (companion-3d.js), once it's drawn, in place of the drawing: its canvas is
+   centred on the bun's middle where the drawing has it (0.5 and 0.4524 of his width from the
+   drawing's corner), 3.6 of his bun's radii (0.3549 of his width) across, room for his spikes as
+   he turns. The drawing is taken out of the page, which also stops its animation
+   (companion-motion.js skips frames for a drawing with no size), and the host keeps the drawing's
+   height (0.8208 of its width), so it's still there to point at; a finale's keeps its own. A
+   finger dragged across him pets his fur rather than scrolling sideways. */
+.peek canvas {
+  position: absolute;
+  top: calc(var(--peek) * (0.4524 - 0.6389));
+  left: calc(var(--peek) * (0.5 - 0.6389));
+  width: calc(var(--peek) * 1.2777);
+  height: calc(var(--peek) * 1.2777);
+  pointer-events: none;
+}
+.peek.real svg {
+  display: none;
+}
+.peek.real {
+  touch-action: pan-y;
+}
+.peek.real:not(.peek-up) {
+  height: calc(var(--peek) * 0.8208);
+}
 /* The icon, alive: Slides' yellow tile, rounded as icon.svg's (240 of its 1080), with him on it
    where icon.svg has him (scripts/build-site.mjs places him), so he can look about as the
    companions peeking over the page's edges do (site.js). His fur reaches past the tile's sides,

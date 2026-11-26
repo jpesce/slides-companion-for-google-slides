@@ -39,6 +39,11 @@ export default [
     files: ['site/**/*.js'],
     languageOptions: { sourceType: 'script', globals: globals.browser },
   },
+  // The companions in 3D, which site.js imports: a module.
+  {
+    files: ['site/companion-3d.js'],
+    languageOptions: { sourceType: 'module', globals: globals.browser },
+  },
   {
     files: ['extension/background.js', 'extension/dev-reload.js'],
     languageOptions: { globals: globals.serviceworker },
