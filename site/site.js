@@ -298,7 +298,7 @@
       // that stops part way through his rise doesn't leave him half up, eyes behind the edge: he
       // finishes it.
       host.style.animation = 'none';
-      const depth = panel ? '100%' : 'var(--peek) * 0.62';
+      const depth = panel ? '100%' : 'var(--peek-rise)';
       const goal = () => Math.min(1, Math.max(0, (innerHeight - edge()) / (innerHeight * 0.2)));
       let x = goal();
       let v = 0;

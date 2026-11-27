@@ -99,8 +99,14 @@
   --peek: clamp(112px, 90.97px + 5.393vw, 160px);
   --rise: clamp(168px, 139.96px + 7.191vw, 232px);
   --panel-top: clamp(56px, 41.98px + 3.596vw, 88px);
-  /* Room above the film for the companion's head, which rises 0.558 of his width above it. */
-  --stage-top: calc(var(--peek) * 0.558 + var(--stack));
+  /* How much of the hero's companion shows above the film, in shares of his width: all of his
+     eyes, even looking down at the film, when his body nods and the eyes' whites reach 0.594 down
+     him, and a thin rim of fur under them. Hidden below it as the page opens, he rises from
+     --peek-rise lower. */
+  --peek-shows: 0.61;
+  --peek-rise: calc(var(--peek) * (var(--peek-shows) + 0.06));
+  /* Room above the film for the companion's head. */
+  --stage-top: calc(var(--peek) * var(--peek-shows) + var(--stack));
 
   /* The layout: a phone. */
   --width: 100%;
@@ -770,15 +776,15 @@ h1 {
 }
 
 /* The film, on a screen the companion peeks over from behind, his eyes on the pointer. He's
-   --peek wide, and the top 0.68 of his height shows, his eyes just above the edge, as on the
-   store's screenshots (his fur is 0.821 as tall as it's wide). */
+   --peek wide, and the top three quarters of his height shows, his eyes above the edge wherever
+   they look (his fur is 0.821 as tall as it's wide). */
 .stage {
   position: relative;
   margin-top: var(--stage-top);
 }
 .peek {
   position: absolute;
-  top: calc(var(--peek) * -0.558);
+  top: calc(var(--peek) * -1 * var(--peek-shows));
   right: var(--peek-right);
   width: var(--peek);
 }
@@ -963,7 +969,7 @@ h1 {
 }
 @keyframes peek-rise {
   from {
-    translate: 0 calc(var(--peek) * 0.62);
+    translate: 0 var(--peek-rise);
   }
 }
 .screen {
